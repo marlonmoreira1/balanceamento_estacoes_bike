@@ -1,0 +1,9 @@
+pandas
+requests
+folium
+scipy
+networkx  
+geopy
+streamlit
+plotly
+plotly-express
