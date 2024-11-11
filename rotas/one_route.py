@@ -6,6 +6,7 @@ from folium import plugins
 from typing import Tuple
 from typing import Dict, List, Tuple
 import time
+import streamlit as st
 import random
 from folium import plugins, FeatureGroup
 import colorsys
@@ -13,7 +14,7 @@ from scipy.spatial import distance_matrix
 import networkx as nx
 from geopy.distance import geodesic
 from rotas.cores_rotas import get_route, generate_distinct_colors
-
+from rotas.main_map import get_map_html
 
 
 def optimize_complete_route_with_map(routes_info):
@@ -71,7 +72,7 @@ def optimize_complete_route_with_map(routes_info):
     total_duration = 0
     detailed_route = []
 
-    for i in range(len(optimized_path) - 2):
+    for i in range(len(optimized_path) - 2):  
         start = optimized_path[i]
         end = optimized_path[i + 1]
         
@@ -126,6 +127,11 @@ def optimize_complete_route_with_map(routes_info):
             ).add_to(m)
                
     
+    folium.Marker(
+        location=end_coords,
+        popup=popup_text,
+        icon=folium.Icon(color=icon_color, icon="info-sign")
+    ).add_to(m)
 
     
     plugins.MeasureControl(
@@ -143,4 +149,15 @@ def optimize_complete_route_with_map(routes_info):
     
     return optimized_route_info, m
 
-
+def show_map_oneroute(mapa):   
+  
+    @st.cache_data(show_spinner=False)
+    def get_cached_map_html(_mapa):
+        
+        return get_map_html(_mapa)
+    
+   
+    map_html = get_cached_map_html(mapa)
+    
+    
+    st.components.v1.html(map_html, height=600)

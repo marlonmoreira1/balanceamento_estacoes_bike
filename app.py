@@ -12,9 +12,11 @@ from geopy.distance import geodesic
 import streamlit as st
 from streamlit_folium import st_folium
 import plotly.express as px
-from rotas.one_route import optimize_complete_route_with_map
+from rotas.one_route import optimize_complete_route_with_map, show_map_oneroute
 from rotas.regions_routes import optimize_routes_by_region
-from rotas.main_map import show_map_static
+from rotas.main_map import show_map_static, create_station_map
+from pares.find_par import get_par
+from calculate_routes.distance_routes import calculate_station_routes
 
 urls = {
     "vehicle_types": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
@@ -56,10 +58,13 @@ def station_type(row):
 
     if row['num_bikes_available']<1 and row['status']=='IN_SERVICE':
         return 'vazia'
+
     elif row['num_bikes_available']>12 and row['status']=='IN_SERVICE':
         return 'doadora'
+
     elif (row['num_bikes_available']>0 and row['num_bikes_available']<=3) and row['status']=='IN_SERVICE':
         return 'risco'
+
     return 'normal'
 
 
@@ -75,53 +80,7 @@ vazias = df_merged.loc[(df_merged['num_bikes_available']<1)&\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status']]
 
 
-
-coords = df_merged[['lat', 'lon']].values
-dist_matrix = distance_matrix(coords, coords)  
-
-
-dist_df = pd.DataFrame(dist_matrix, index=df_merged['station_id'], columns=df_merged['station_id'])
-
-
-resultados = []
-
-
-for station_id in vazias['station_id']:
-    proximas = dist_df[station_id].sort_values()[1:]  
-    for nearby_station_id in proximas.index[:30]:  
-        
-        name = df_merged.loc[df_merged['station_id'] == station_id, 'name'].values[0]
-        address = df_merged.loc[df_merged['station_id'] == station_id, 'address'].values[0]
-        lat = df_merged.loc[df_merged['station_id'] == station_id, 'lat'].values[0]
-        lon = df_merged.loc[df_merged['station_id'] == station_id, 'lon'].values[0]
-        
-        distancia = proximas[nearby_station_id]  
-        num_bikes_available = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'num_bikes_available'].values[0]
-        capacity = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'capacity'].values[0]
-        address_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'address'].values[0]
-        name_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'name'].values[0]
-        lat_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'lat'].values[0]
-        lon_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'lon'].values[0]
-        status = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'status'].values[0]
-        
-        resultados.append({
-            'station_id': station_id,
-            'name': name,
-            'address': address,
-            'lat': lat,
-            'lon': lon,
-            'nearby_station_id': nearby_station_id,
-            'distance': distancia,
-            'address_nearby': address_nearby,
-            'name_nearby': name_nearby,
-            'lat_nearby': lat_nearby,
-            'lon_nearby': lon_nearby,
-            'status': status,
-            'num_bikes_available': num_bikes_available,
-            'capacity': capacity
-        })
-
-vazia_doadora_par = pd.DataFrame(resultados)
+vazia_doadora_par = get_par(df_merged,vazias)
 
 df_filter = vazia_doadora_par[vazia_doadora_par['nearby_station_id'].isin(doadora['station_id'])]
 
@@ -135,5 +94,18 @@ route_closer = df_filter.groupby('station_id').head(1)
 
 st.title("Mapa das Estações e Conexões")
 
+mapa_principal = create_station_map(df_merged, df_agrupado)
 
-show_map_static(df_merged, route_closer)
+show_map_static(mapa_principal)
+
+one_route = calculate_station_routes(route_max)
+
+one_route_optmized, mapa_one_route = optimize_complete_route_with_map(one_route)
+
+show_map_oneroute(mapa_one_route)
+
+st.write("Distância total da rota otimizada:", one_route_optmized["total_distance_km"], "km")
+st.write("Tempo total da rota otimizada:", one_route_optmized["total_duration_min"], "minutos")
+st.write("Rota otimizada:")
+for step in one_route_optmized["detailed_route"]:
+    st.write(f"De {step['start_point']} para {step['end_point']}, Distância: {step['distance_km']} km")

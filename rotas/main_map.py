@@ -67,19 +67,12 @@ def create_station_map(df_stations: pd.DataFrame, df_pairs: pd.DataFrame) -> fol
 
     return m
 
-
-
-def get_map_html(df_stations, df_pairs):
-    """
-    Cria o mapa e retorna o HTML como string
-    """
+def get_map_html(mapa):
     
-    m = create_station_map(df_stations, df_pairs)
-    
-    
+    m = mapa
     html_string = m.get_root().render()
     
-  
+    
     html_string = html_string.replace(
         '</head>',
         '''
@@ -104,17 +97,15 @@ def get_map_html(df_stations, df_pairs):
     
     return html_string
 
-def show_map_static(df_stations, df_pairs):
-    """
-    Exibe o mapa usando st.components.html
-    """
+def show_map_static(mapa):   
   
-    @st.cache_data
-    def get_cached_map_html():
-        return get_map_html(df_stations, df_pairs)
+    @st.cache_data(show_spinner=False)
+    def get_cached_map_html(_mapa):
+        
+        return get_map_html(_mapa)
     
-  
-    map_html = get_cached_map_html()
+   
+    map_html = get_cached_map_html(mapa)
     
-
+    
     st.components.v1.html(map_html, height=600)

@@ -7,3 +7,4 @@ geopy
 streamlit
 plotly
 plotly-express
+streamlit_folium
