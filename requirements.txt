@@ -8,3 +8,4 @@ streamlit
 plotly
 plotly-express
 streamlit_folium
+streamlit-autorefresh

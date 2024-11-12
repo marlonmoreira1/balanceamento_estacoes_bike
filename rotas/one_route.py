@@ -149,15 +149,11 @@ def optimize_complete_route_with_map(routes_info):
     
     return optimized_route_info, m
 
-def show_map_oneroute(mapa):   
-  
-    @st.cache_data(show_spinner=False)
-    def get_cached_map_html(_mapa):
-        
-        return get_map_html(_mapa)
+@st.cache_data(show_spinner=False)
+def get_cached_map_one_route_html(mapa):
+    return mapa
+
+def show_map_static_one_route(mapa, filtro):
     
-   
-    map_html = get_cached_map_html(mapa)
-    
-    
+    map_html = get_cached_map_one_route_html(get_map_html(mapa) + filtro)
     st.components.v1.html(map_html, height=600)

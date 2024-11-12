@@ -97,15 +97,11 @@ def get_map_html(mapa):
     
     return html_string
 
-def show_map_static(mapa):   
-  
-    @st.cache_data(show_spinner=False)
-    def get_cached_map_html(_mapa):
-        
-        return get_map_html(_mapa)
+@st.cache_data(show_spinner=False)
+def get_cached_map_html(mapa):
+    return mapa
+
+def show_map_static(mapa, filtro):
     
-   
-    map_html = get_cached_map_html(mapa)
-    
-    
+    map_html = get_cached_map_html(get_map_html(mapa) + filtro)
     st.components.v1.html(map_html, height=600)
