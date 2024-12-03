@@ -5,28 +5,23 @@ from datetime import datetime, timedelta
 import time
 
 urls = {
-    "salvador": {
-        "vehicle_types": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
+    "Salvador": {        
         "station_information": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     },
-    "recife": {
-        "vehicle_types": "https://rec.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
+    "Recife": {        
         "station_information": "https://rec.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://rec.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     },
-    "sp": {
-        "vehicle_types": "https://saopaulo.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
+    "São Paulo": {        
         "station_information": "https://saopaulo.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://saopaulo.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     },
-    "rio": {
-        "vehicle_types": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
+    "Rio de Janeiro": {        
         "station_information": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     },
-    "poa": {
-        "vehicle_types": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/vehicle_types",
+    "Porto Alegre": {        "
         "station_information": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     }
@@ -34,23 +29,23 @@ urls = {
 
 
 def fetch_data(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json().get("data")
-        if data:
-            if isinstance(data, dict) and len(data) == 1:
-                data_key = list(data.keys())[0]
-                return pd.DataFrame(data[data_key])
-            else:
-                return pd.DataFrame([data])
+    response = requests.get(url)    
+    data = response.json().get("data")        
+        if isinstance(data, dict) and len(data) == 1:
+            data_key = list(data.keys())[0]
+            return pd.DataFrame(data[data_key])
+        else:
+            return pd.DataFrame([data])
     return pd.DataFrame()
 
+
+@st.cache_resource(allow_output_mutation=True)
 def collect_data():
     
     station_information_list = []
     station_status_list = []
     
-    for city, city_urls in urls.items():
+    for city, city_urls in urls.items():        
         station_information = fetch_data(city_urls["station_information"])
         station_information['city'] = city
         station_information['new_id'] = city + station_information['station_id']

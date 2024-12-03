@@ -1,9 +1,6 @@
 import pandas as pd
 import requests
 import folium
-import folium
-from folium import plugins
-from typing import Tuple
 from typing import Dict, List, Tuple
 import time
 import streamlit as st
@@ -15,48 +12,46 @@ import networkx as nx
 from geopy.distance import geodesic
 from rotas.cores_rotas import get_route, generate_distinct_colors
 from rotas.main_map import get_map_html
+from calculate_routes.distance_matrix import get_distance_matrix
 
 
-def optimize_complete_route_with_map(routes_info):
+def optimize_complete_route_with_map(df_stations):
     """
     Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,
     obtém as rotas detalhadas entre as estações na sequência otimizada e plota no mapa.
 
     Parameters:
-    routes_info (dict): Dicionário com informações das rotas entre estações doadoras e vazias.
+    df_stations (pd.DataFrame): DataFrame contendo informações das estações e suas distâncias.
 
     Returns:
     dict: Dicionário com informações da rota otimizada.
     folium.Map: Mapa Folium com a rota otimizada visualizada.
     """
     
-    
-    G = nx.Graph()
-    
+    G = nx.Graph()    
     
     all_stations = {}
     station_types = {}  
-    for donor_name, info in routes_info.items():
-        
-        start_station = info["start_point"]["nearby_name"]
-        start_coords = info["start_point"]["coords"]
+    
+    
+    for _, row in df_stations.iterrows():
+        start_station = row['name']
+        start_coords = (row['lat'], row['lon'])
         all_stations[start_station] = start_coords
-        station_types[start_station] = "doadora"
+        station_types[row['name_nearby']] = "doadora"
+        station_types[row['name']] = "vazia"
         
-       
-        for dest in info["destinations"]:
-            dest_station = dest["name"]
-            dest_coords = dest["coords"]
-            all_stations[dest_station] = dest_coords
-            station_types[dest_station] = "vazia"
+        
+        nearby_station = row['name_nearby']
+        nearby_coords = (row['lat_nearby'], row['lon_nearby'])
+
     
-    
-    for station1, coords1 in all_stations.items():
-        for station2, coords2 in all_stations.items():
-            if station1 != station2:
-                distance = geodesic(coords1, coords2).km
-                G.add_edge(station1, station2, distance=distance)
-    
+        for station1, coords1 in all_stations.items():
+            for station2, coords2 in all_stations.items():
+                if station1 != station2:
+                    distance = geodesic(coords1, coords2).km
+                    G.add_edge(station1, station2, distance=distance)
+
     
     optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
     
@@ -64,67 +59,63 @@ def optimize_complete_route_with_map(routes_info):
     start_coords = all_stations[optimized_path[0]]
     m = folium.Map(location=[start_coords[0], start_coords[1]], zoom_start=12)
 
-    
     color = "blue"
     
-   
     total_distance = 0
     total_duration = 0
     detailed_route = []
+    
+    optimized_coords = [all_stations[station] for station in optimized_path]
 
-    for i in range(len(optimized_path) - 2):  
+    
+    distance_matrix_result = get_distance_matrix(optimized_coords)
+    
+    for i in range(len(optimized_path) - 1):
         start = optimized_path[i]
         end = optimized_path[i + 1]
         
         start_coords = all_stations[start]
-        end_coords = all_stations[end]
+        end_coords = all_stations[end]        
         
         
-        route_info = get_route(start_coords, end_coords)
+        folium.GeoJson(
+            distance_matrix_result["geometry"],
+            style_function=lambda x: {"color": color, "weight": 4, "opacity": 0.8}
+        ).add_to(m)
         
-        if route_info:
-            total_distance += route_info["distance"]
-            total_duration += route_info["duration"]
-            
-            
-            folium.GeoJson(
-                route_info["geometry"],
-                style_function=lambda x: {"color": color, "weight": 4, "opacity": 0.8}
-            ).add_to(m)
-            
-            
-            detailed_route.append({
-                "start_point": start,
-                "end_point": end,
-                "distance_km": route_info["distance"],
-                "duration_min": route_info["duration"]
-            })
+        
+        detailed_route.append({
+            "start_point": start,
+            "end_point": end,
+            "distance_km": distance_matrix_result["distance"],
+            "duration_min": distance_matrix_result["duration"]
+        })
 
-            
-            station_type = station_types.get(start, "vazia")  
-            if station_type == "doadora":
-                icon_color = "green"
-                popup_text = f"""
-                    <div style="font-family: Arial; padding: 5px;">
-                        <h4 style="margin: 0;">🔋 {start}</h4>
-                        <p style="margin: 5px 0;">Estação Doadora</p>
-                    </div>
-                """
-            else:
-                icon_color = "red"
-                popup_text = f"""
-                    <div style="font-family: Arial; padding: 5px;">
-                        <h4 style="margin: 0;">⚡ {start}</h4>
-                        <p style="margin: 5px 0;">Estação Vazia</p>
-                    </div>
-                """
+        
+        station_type = station_types.get(start, "vazia")  
+        if station_type == "doadora":
+            icon_color = "green"
+            popup_text = f"""
+                <div style="font-family: Arial; padding: 5px;">
+                    <h4 style="margin: 0;">🔋 {start}</h4>
+                    <p style="margin: 5px 0;">Estação Doadora</p>
+                </div>
+            """
+        else:
+            icon_color = "red"
+            popup_text = f"""
+                <div style="font-family: Arial; padding: 5px;">
+                    <h4 style="margin: 0;">⚡ {start}</h4>
+                    <p style="margin: 5px 0;">Estação Vazia</p>
+                </div>
+            """
                 
             
-            folium.Marker(
-                location=start_coords,
-                popup=popup_text,
-                icon=folium.Icon(color=icon_color, icon="info-sign")
-            ).add_to(m)
+        folium.Marker(
+            location=start_coords,
+            popup=popup_text,
+            icon=folium.Icon(color=icon_color, icon="info-sign")
+        ).add_to(m)
                
     
     folium.Marker(
@@ -148,6 +139,7 @@ def optimize_complete_route_with_map(routes_info):
     }
     
     return optimized_route_info, m
+
 
 @st.cache_data(show_spinner=False)
 def get_cached_map_one_route_html(mapa):

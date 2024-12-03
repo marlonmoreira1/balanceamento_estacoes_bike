@@ -54,17 +54,7 @@ def create_station_map(df_stations: pd.DataFrame, df_pairs: pd.DataFrame) -> fol
                 popup=row['name'],
                 icon=folium.Icon(color=station_colors.get(row['station_type_situation'], 'gray'))
             ).add_to(m)
-
-    
-    for _, row in df_pairs.iterrows():
-        if pd.notnull(row['lat']) and pd.notnull(row['lon']) and pd.notnull(row['lat_nearby']) and pd.notnull(row['lon_nearby']):
-            folium.PolyLine(
-                locations=[[row['lat'], row['lon']], [row['lat_nearby'], row['lon_nearby']]],
-                color="blue",
-                weight=2,
-                opacity=0.7
-            ).add_to(m)
-
+            
     return m
 
 def get_map_html(mapa):

@@ -3,56 +3,43 @@ from typing import Dict, List, Tuple
 import time
 import random
 from folium import plugins, FeatureGroup
-from scipy.spatial import distance_matrix
+from scipy.spatial import KDTree
+from scipy.spatial.distance import cdist
 
-
-
-def get_par(df_merged,vazias):
-    coords = df_merged[['lat', 'lon']].values
-    dist_matrix = distance_matrix(coords, coords)  
-
-
-    dist_df = pd.DataFrame(dist_matrix, index=df_merged['station_id'], columns=df_merged['station_id'])
-
-
+def get_par(doadoras,vazias):
+    coords_vazias = vazias[['lat', 'lon']].values
+    coords_doadoras = doadoras[['lat', 'lon']].values    
+    
+    tree = KDTree(coords_doadoras)
+    
     resultados = []
-
-
-    for station_id in vazias['station_id']:
-        proximas = dist_df[station_id].sort_values()[1:]  
-        for nearby_station_id in proximas.index[:30]:  
-            
-            name = df_merged.loc[df_merged['station_id'] == station_id, 'name'].values[0]
-            address = df_merged.loc[df_merged['station_id'] == station_id, 'address'].values[0]
-            lat = df_merged.loc[df_merged['station_id'] == station_id, 'lat'].values[0]
-            lon = df_merged.loc[df_merged['station_id'] == station_id, 'lon'].values[0]
-            
-            distancia = proximas[nearby_station_id]  
-            num_bikes_available = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'num_bikes_available'].values[0]
-            capacity = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'capacity'].values[0]
-            address_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'address'].values[0]
-            name_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'name'].values[0]
-            lat_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'lat'].values[0]
-            lon_nearby = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'lon'].values[0]
-            status = df_merged.loc[df_merged['station_id'] == nearby_station_id, 'status'].values[0]
-            
-            resultados.append({
-                'station_id': station_id,
-                'name': name,
-                'address': address,
-                'lat': lat,
-                'lon': lon,
-                'nearby_station_id': nearby_station_id,
-                'distance': distancia,
-                'address_nearby': address_nearby,
-                'name_nearby': name_nearby,
-                'lat_nearby': lat_nearby,
-                'lon_nearby': lon_nearby,
-                'status': status,
-                'num_bikes_available': num_bikes_available,
-                'capacity': capacity
-            })
-
+    
+    for _, row in vazias.iterrows():  
+        station_id = row['station_id']
+        lat, lon = row['lat'], row['lon']
+        
+        
+        dist, idx = tree.query([lat, lon], k=1)  
+        nearby_station_id = doadoras.iloc[idx]['station_id']        
+        
+        nearby_data = doadoras.iloc[idx]
+        
+        resultados.append({
+            'station_id': station_id,
+            'name': row['name'],
+            'address': row['address'],
+            'lat': lat,
+            'lon': lon,
+            'nearby_station_id': nearby_station_id,
+            'distance': dist,
+            'address_nearby': nearby_data['address'],
+            'name_nearby': nearby_data['name'],
+            'lat_nearby': nearby_data['lat'],
+            'lon_nearby': nearby_data['lon'],
+            'status': nearby_data['status'],
+            'num_bikes_available': nearby_data['num_bikes_available'],
+            'capacity': nearby_data['capacity']
+        })
+    
     vazia_doadora_par = pd.DataFrame(resultados)
-
     return vazia_doadora_par

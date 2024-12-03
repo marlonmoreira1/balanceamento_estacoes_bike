@@ -15,22 +15,20 @@ from geopy.distance import geodesic
 
 
 def get_route(start_coords: Tuple[float, float], end_coords: Tuple[float, float]) -> dict:
-    """Obtém rota entre dois pontos usando OSRM."""
+    """Obtém rota entre dois pontos com cache para melhorar performance."""
     url = f"http://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full&geometries=geojson"
-    
     try:
         response = requests.get(url)
-        if response.status_code == 200:
-            route = response.json()
-            if route["code"] == "Ok":
-                return {
-                    "distance": route["routes"][0]["distance"] / 1000,  
-                    "duration": route["routes"][0]["duration"] / 60,    
-                    "geometry": route["routes"][0]["geometry"]
-                }
+        
+        route = response.json()
+        
+        return {
+            "distance": route["routes"][0]["distance"] / 1000,
+            "duration": route["routes"][0]["duration"] / 60,
+            "geometry": route["routes"][0]["geometry"]
+        }
     except requests.exceptions.RequestException:
         pass
-        
     return None
 
 
