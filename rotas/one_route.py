@@ -92,7 +92,7 @@ def optimize_complete_route_with_map(df_stations):
         })
 
         
-        station_type = station_types.get(start, "vazia")  
+        station_type = station_types[start] 
         if station_type == "doadora":
             icon_color = "green"
             popup_text = f"""

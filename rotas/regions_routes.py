@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import requests
 import folium
 import folium
@@ -7,217 +8,150 @@ from typing import Tuple
 from typing import Dict, List, Tuple
 import time
 import random
+import streamlit as st
 from folium import plugins, FeatureGroup
 import colorsys
 from scipy.spatial import distance_matrix
+from scipy.cluster.hierarchy import linkage, fcluster
 import networkx as nx
 from geopy.distance import geodesic
 from rotas.cores_rotas import get_route, generate_distinct_colors
+from calculate_routes.distance_matrix import get_distance_matrix
+from rotas.main_map import get_map_html
 
 
-def optimize_routes_by_region(routes_info, max_distance_km=5):
+def optimize_routes_by_region(df_stations):
     """
-    Otimiza as rotas com base na proximidade regional das estações vazias e gera mapa interativo.
+    Otimiza rotas para cada região, criando rotas separadas para cada grupo de estações.
+
+    Parameters:
+    df_stations (pd.DataFrame): DataFrame contendo informações das estações, incluindo grupos/regiões.
+
+    Returns:
+    dict: Dicionário contendo informações de rotas otimizadas por região.
+    folium.Map: Um único mapa com todas as rotas.
     """
     
-    station_coords = {}
-    empty_stations = set()
-    donor_stations = set()
+    regional_routes = {}
+    color = "blue"
     
+    start_coords = (df_stations['lat'].iloc[0], df_stations['lon'].iloc[0])
+    m = folium.Map(location=start_coords, zoom_start=12)
+
     
-    for donor_name, info in routes_info.items():
-        start_station = info["start_point"]["nearby_name"]
-        start_coords = info["start_point"]["coords"]
+    for region in df_stations['groups'].unique():
         
-        donor_stations.add(start_station)
-        station_coords[start_station] = start_coords
+        df_region = df_stations[df_stations['groups'] == region]
         
-        for dest in info["destinations"]:
-            dest_name = dest["name"]
-            dest_coords = dest["coords"]
-            
-            empty_stations.add(dest_name)
-            station_coords[dest_name] = dest_coords
-
-    
-    empty_stations = list(empty_stations)
-    
-    
-    empty_coords = [station_coords[station] for station in empty_stations]
-    condensed_distance_matrix = []
-    
-    for i in range(len(empty_coords)):
-        for j in range(i + 1, len(empty_coords)):
-            distance = geodesic(empty_coords[i], empty_coords[j]).km
-            condensed_distance_matrix.append(distance)
-
-    
-    Z = linkage(condensed_distance_matrix, method='single')
-    region_labels = fcluster(Z, max_distance_km, criterion='distance')
-
-    
-    empty_stations_by_region = {}
-    for i, region in enumerate(region_labels):
-        if region not in empty_stations_by_region:
-            empty_stations_by_region[region] = []
-        empty_stations_by_region[region].append(empty_stations[i])
-
-    
-    all_coords = list(station_coords.values())
-    center_lat = np.mean([coord[0] for coord in all_coords])
-    center_lon = np.mean([coord[1] for coord in all_coords])
-    m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
-
-    
-    colors = generate_distinct_colors(len(empty_stations_by_region))
-    color_map = dict(zip(empty_stations_by_region.keys(), colors))
-
-    
-    feature_groups = {region: FeatureGroup(name=f"Região {region}") 
-                     for region in empty_stations_by_region.keys()}
-
-    
-    optimized_routes = []
-    total_distance = 0
-    
-    for region, region_empty_stations in empty_stations_by_region.items():
         
-        region_donors = set()
-        for station in region_empty_stations:
-            for donor_name, info in routes_info.items():
-                if station in [dest["name"] for dest in info["destinations"]]:
-                    region_donors.add(info["start_point"]["nearby_name"])
-        
-        region_donors = list(region_donors)
+        if df_region.empty:
+            continue
         
         
         G = nx.Graph()
-        all_region_stations = region_empty_stations + region_donors
         
         
-        for i, station1 in enumerate(all_region_stations):
-            for station2 in all_region_stations[i+1:]:
-                coord1 = station_coords[station1]
-                coord2 = station_coords[station2]
-                distance = geodesic(coord1, coord2).km
-                G.add_edge(station1, station2, distance=distance)
+        all_stations = {}
+        station_types = {}
         
-        if len(G.edges) > 0:
-            try:
-                
-                optimized_path = nx.algorithms.approximation.traveling_salesman_problem(G, weight="distance", cycle=False)
-                region_distance = sum(G[optimized_path[i]][optimized_path[i+1]]["distance"] 
-                                   for i in range(len(optimized_path) - 1))
-                total_distance += region_distance
-                
-                
-                optimized_route = []
-                for i in range(len(optimized_path) - 1):
-                    start = optimized_path[i]
-                    end = optimized_path[i + 1]
-                    start_coords = station_coords[start]
-                    end_coords = station_coords[end]
-                    
-                    
-                    route_details = get_route(start_coords, end_coords)
-                    if route_details:
-                        
-                        route_html = f"""
-                            <div>
-                                <h4>📍 Rota - Região {region}</h4>
-                                <p>De: {start}</p>
-                                <p>Para: {end}</p>
-                                <p>Distância: {round(route_details['distance'], 2)} km</p>
-                                <p>Tempo estimado: {round(route_details['duration'], 2)} min</p>
-                            </div>
-                        """
-                        
-                        
-                        folium.PolyLine(
-                            locations=[[coord[1], coord[0]] for coord in route_details["geometry"]["coordinates"]],
-                            weight=4,
-                            color=color_map[region],
-                            opacity=0.8,
-                            popup=folium.Popup(route_html, max_width=300)
-                        ).add_to(feature_groups[region])
-                        
-                        
-                        for point, coords in [(start, start_coords), (end, end_coords)]:
-                            icon_color = "green" if point in donor_stations else "red"
-                            station_type = "Doadora" if point in donor_stations else "Vazia"
-                            icon = "⚡" if point in donor_stations else "🔋"
-                            
-                            popup_text = f"""
-                                <div>
-                                    <h4>{icon} {point}</h4>
-                                    <p>Estação {station_type}</p>
-                                    <p>Região {region}</p>
-                                </div>
-                            """
-                            
-                            folium.Marker(
-                                location=coords,
-                                popup=popup_text,
-                                icon=folium.Icon(color=icon_color, icon="info-sign")
-                            ).add_to(feature_groups[region])
-                        
-                        optimized_route.append({
-                            "start_point": start,
-                            "end_point": end,
-                            "distance_km": route_details["distance"],
-                            "duration_min": route_details["duration"]
-                        })
-                
-                optimized_routes.append({
-                    "region": region,
-                    "region_distance": round(region_distance, 2),
-                    "optimized_route": optimized_route
-                })
-            except nx.NetworkXError:
-                print(f"Não foi possível otimizar a rota para a região {region}")
-        else:
+        
+        for _, row in df_region.iterrows():
+            start_station = row['name']
+            start_coords = (row['lat'], row['lon'])
+            all_stations[start_station] = start_coords
             
-            for empty_station in region_empty_stations:
-                station_coords_point = station_coords[empty_station]
+            
+            station_types[row['name_nearby']] = "doadora"
+            station_types[row['name']] = "vazia"
+            
+            
+            for station1, coords1 in all_stations.items():
+                if station1 != start_station:
+                    distance = geodesic(coords1, start_coords).km
+                    G.add_edge(station1, start_station, distance=distance)
+        
+        
+        if len(all_stations) > 1:
+            
+            try:
+                optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
+            except nx.NetworkXError:
+                
+                optimized_path = list(all_stations.keys())
+            
+           
+            detailed_route = []
+            optimized_coords = [all_stations[station] for station in optimized_path]
+            
+            
+            try:
+                distance_matrix_result = get_distance_matrix(optimized_coords)
+            except Exception as e:
+                print(f"Erro ao calcular matriz de distância para {region}: {e}")
+                distance_matrix_result = None
+            
+            
+            for i, station in enumerate(optimized_path):
+                coords = all_stations[station]
+                
+                
+                station_type = station_types[station]
+                icon_color = "green" if station_type == "doadora" else "red"
                 
                 
                 popup_text = f"""
-                    <div>
-                        <h4>🔋 {empty_station}</h4>
-                        <p>Estação Isolada</p>
-                        <p>Região {region}</p>
+                    <div style="font-family: Arial; padding: 5px;">
+                        <h4 style="margin: 0;">{'🔋' if station_type == 'doadora' else '⚡'} {station}</h4>
+                        <p style="margin: 5px 0;">Estação {station_type.capitalize()}</p>
+                        <p style="margin: 5px 0;">Região: {region}</p>
                     </div>
                 """
                 
-                folium.Marker(
-                    location=station_coords_point,
-                    popup=popup_text,
-                    icon=folium.Icon(color="red", icon="info-sign")
-                ).add_to(feature_groups[region])
                 
-                optimized_routes.append({
-                    "region": region,
-                    "region_distance": 0,
-                    "optimized_route": [{
-                        "start_point": empty_station,
-                        "end_point": empty_station,
-                        "distance_km": 0
-                    }]
-                })
+                folium.Marker(
+                    location=coords,
+                    popup=popup_text,
+                    icon=folium.Icon(color=icon_color, icon="info-sign")
+                ).add_to(m)
+                
+                
+                if i < len(optimized_path) - 1:
+                    next_station = optimized_path[i+1]
+                    next_coords = all_stations[next_station]
+                    
+                    
+                    folium.GeoJson(
+                        distance_matrix_result["geometry"],
+                        style_function=lambda x: {"color": color, "weight": 4, "opacity": 0.8}
+                    ).add_to(m)
+                    
+                    
+                    if distance_matrix_result:
+                        detailed_route.append({
+                            "start_point": station,
+                            "end_point": next_station,
+                            "distance_km": distance_matrix_result["distance"],
+                            "duration_min": distance_matrix_result["duration"]
+                        })
+            
+                        
+            
+            regional_routes[region] = {
+                "total_stations": len(all_stations),
+                "stations": list(all_stations.keys()),
+                "detailed_route": detailed_route
+            }
+    
+    return regional_routes, m
 
-    
-    plugins.MeasureControl(
-        position='topleft',
-        primary_length_unit='kilometers',
-        secondary_length_unit='miles'
-    ).add_to(m)
-    
-    
-    for group in feature_groups.values():
-        group.add_to(m)
-    folium.LayerControl().add_to(m)
 
-    return {
-        "total_distance": round(total_distance, 2),
-        "optimized_routes": optimized_routes
-    }, m
+
+@st.cache_data(show_spinner=False)
+def get_cached_map_region_route_html(mapa):
+    return mapa
+
+
+def show_map_static_region_route(mapa, filtro):
+    
+    map_html = get_cached_map_region_route_html(get_map_html(mapa) + filtro)
+    st.components.v1.html(map_html, height=600)

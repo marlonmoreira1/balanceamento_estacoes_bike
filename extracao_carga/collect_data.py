@@ -21,7 +21,7 @@ urls = {
         "station_information": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     },
-    "Porto Alegre": {        "
+    "Porto Alegre": {        
         "station_information": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_information",
         "station_status": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_status"
     }
@@ -31,15 +31,15 @@ urls = {
 def fetch_data(url):
     response = requests.get(url)    
     data = response.json().get("data")        
-        if isinstance(data, dict) and len(data) == 1:
-            data_key = list(data.keys())[0]
-            return pd.DataFrame(data[data_key])
-        else:
-            return pd.DataFrame([data])
+    if isinstance(data, dict) and len(data) == 1:
+        data_key = list(data.keys())[0]
+        return pd.DataFrame(data[data_key])
+    else:
+        return pd.DataFrame([data])
     return pd.DataFrame()
 
 
-@st.cache_resource(allow_output_mutation=True)
+#@st.cache_resource
 def collect_data():
     
     station_information_list = []

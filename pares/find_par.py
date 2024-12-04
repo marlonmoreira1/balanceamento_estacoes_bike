@@ -30,6 +30,7 @@ def get_par(doadoras,vazias):
             'address': row['address'],
             'lat': lat,
             'lon': lon,
+            "groups": row['groups'],
             'nearby_station_id': nearby_station_id,
             'distance': dist,
             'address_nearby': nearby_data['address'],

@@ -1,20 +1,12 @@
 import pandas as pd
 import requests
-import folium
-from typing import Dict, List, Tuple
 import time
 import random
-from folium import plugins, FeatureGroup
-import colorsys
-from scipy.spatial import distance_matrix
-import networkx as nx
-from geopy.distance import geodesic
 import streamlit as st
-from streamlit_folium import st_folium
 import plotly.express as px
 from streamlit_autorefresh import st_autorefresh
 from rotas.one_route import optimize_complete_route_with_map, show_map_static_one_route
-from rotas.regions_routes import optimize_routes_by_region
+from rotas.regions_routes import optimize_routes_by_region, show_map_static_region_route
 from rotas.main_map import show_map_static, create_station_map
 from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
@@ -40,20 +32,26 @@ df_merged = pd.merge(
     how='left'
 )
 
+def get_regions(row):
+        if isinstance(row['groups'],list) and len(row['groups'])>0:
+            return row['groups'][0]
+        return None  
+
+df_merged['groups'] = df_merged.apply(get_regions,axis=1) 
 
 city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 
 df_merged = df_merged[df_merged['city']==city]
-
+st.dataframe(df_merged)
 num_ssa_rec_rio = 11
 num_poa_sp = 6
 
 n = {
-    "salvador": num_ssa_rec_rio,
-    "recife": num_ssa_rec_rio,
-    "sp": num_poa_sp,
-    "rio": num_ssa_rec_rio,
-    "poa": num_poa_sp
+    "Salvador": num_ssa_rec_rio,
+    "Recife": num_ssa_rec_rio,
+    "São Paulo": num_poa_sp,
+    "Rio de Janeiro": num_ssa_rec_rio,
+    "Porto Alegre": num_poa_sp
 }
 
 def station_type(row):
@@ -74,12 +72,12 @@ df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
 
 doadora = df_merged.loc[(df_merged['num_bikes_available']>n[city])&\
                         (df_merged['status']=='IN_SERVICE'),\
-                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status']]
+                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
 
 vazias = df_merged.loc[(df_merged['num_bikes_available']<1)&\
                        (df_merged['status']=='IN_SERVICE'),\
-                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status']]
+                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 fim = time.time()
 st.write(fim-inicio)
 inicio = time.time()
@@ -110,14 +108,19 @@ st.write(fim-inicio)
 inicio = time.time()
 
 
-one_route_optmized, mapa_one_route = optimize_complete_route_with_map(route_closer)
+one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer)
 
-show_map_static_one_route(mapa_one_route,filtro=city)
+show_map_static_one_route(map_one_route,filtro=city)
 
 st.write("Distância total da rota otimizada:", one_route_optmized["total_distance_km"], "km")
 st.write("Tempo total da rota otimizada:", one_route_optmized["total_duration_min"], "minutos")
 st.write("Rota otimizada:")
 for step in one_route_optmized["detailed_route"]:
-    st.write(f"De {step['start_point']} para {step['end_point']}, Distância: {step['distance_km']} km")
+    st.write(f"De {step['start_point']} para {step['end_point']}")
+fim = time.time()
+st.write(fim-inicio)
+inicio = time.time()
+regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
+show_map_static_region_route(map_regions_route,filtro=city)
 fim = time.time()
 st.write(fim-inicio)
