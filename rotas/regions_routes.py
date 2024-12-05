@@ -35,6 +35,8 @@ def optimize_routes_by_region(df_stations):
     start_coords = (df_stations['lat'].iloc[0], df_stations['lon'].iloc[0])
     m = folium.Map(location=start_coords, zoom_start=12)
 
+    feature_groups = {region: folium.FeatureGroup(name=f"Região {region}") for region in df_stations['groups'].unique()}
+
     for idx, region in enumerate(df_stations['groups'].unique()):
         df_region = df_stations[df_stations['groups'] == region]
         
@@ -95,7 +97,7 @@ def optimize_routes_by_region(df_stations):
                     location=coords,
                     popup=popup_text,
                     icon=folium.Icon(color=icon_color, icon="info-sign")
-                ).add_to(m)
+                ).add_to(feature_groups[region])
                 
                 if i < len(optimized_path) - 1:
                     next_station = optimized_path[i+1]
@@ -106,7 +108,7 @@ def optimize_routes_by_region(df_stations):
                         color=color,
                         weight=4,
                         opacity=0.8
-                    ).add_to(m)
+                    ).add_to(feature_groups[region])
                     
                     if distance_matrix_result:
                         detailed_route.append({
@@ -121,6 +123,11 @@ def optimize_routes_by_region(df_stations):
                 "stations": list(all_stations.keys()),
                 "detailed_route": detailed_route
             }
+    
+
+    for group in feature_groups.values():
+        group.add_to(m)
+    folium.LayerControl().add_to(m)
     
     return regional_routes, m
 

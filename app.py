@@ -90,7 +90,7 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
 num_ssa_rec_rio = 1
-num_poa_sp = 5
+num_poa_sp = 7
 
 route_max = final_df.groupby('nearby_station_id').apply(lambda x: x.reset_index(drop=True)).reset_index(drop=True)
 
