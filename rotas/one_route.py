@@ -38,14 +38,15 @@ def optimize_complete_route_with_map(df_stations):
         start_station = row['name']
         start_coords = (row['lat'], row['lon'])
         all_stations[start_station] = start_coords
-        station_types[row['name_nearby']] = "doadora"
-        station_types[row['name']] = "vazia"
-        
-        
-        nearby_station = row['name_nearby']
-        nearby_coords = (row['lat_nearby'], row['lon_nearby'])
 
-    
+        donor_station = row['name_nearby']
+        donor_coords = (row['lat_nearby'], row['lon_nearby'])
+        all_stations[donor_station] = donor_coords
+
+        station_types[row['name_nearby']] = "doadora"
+        station_types[row['name']] = "vazia"  
+
+
         for station1, coords1 in all_stations.items():
             for station2, coords2 in all_stations.items():
                 if station1 != station2:
@@ -94,7 +95,7 @@ def optimize_complete_route_with_map(df_stations):
         
         station_type = station_types[start] 
         if station_type == "doadora":
-            icon_color = "green"
+            icon_color = "blue"
             popup_text = f"""
                 <div style="font-family: Arial; padding: 5px;">
                     <h4 style="margin: 0;">🔋 {start}</h4>

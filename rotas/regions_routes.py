@@ -2,9 +2,6 @@ import pandas as pd
 import numpy as np
 import requests
 import folium
-import folium
-from folium import plugins
-from typing import Tuple
 from typing import Dict, List, Tuple
 import time
 import random
@@ -44,7 +41,7 @@ def optimize_routes_by_region(df_stations):
         if df_region.empty:
             continue
         
-        color = colors[idx % len(colors)]  # Seleciona cor para cada região
+        color = colors[idx % len(colors)]  
         
         G = nx.Graph()
         all_stations = {}
@@ -55,13 +52,15 @@ def optimize_routes_by_region(df_stations):
             start_coords = (row['lat'], row['lon'])
             all_stations[start_station] = start_coords
             
-            station_types[row['name_nearby']] = "doadora"
-            station_types[row['name']] = "vazia"
+            donor_station = row['name_nearby']
+            donor_coords = (row['lat_nearby'], row['lon_nearby'])
+            all_stations[donor_station] = donor_coords
             
-            for station1, coords1 in all_stations.items():
-                if station1 != start_station:
-                    distance = geodesic(coords1, start_coords).km
-                    G.add_edge(station1, start_station, distance=distance)
+            station_types[row['name_nearby']] = "doadora"
+            station_types[row['name']] = "vazia"            
+            
+            distance = geodesic(donor_coords, start_coords).km
+            G.add_edge(donor_station, start_station, distance=distance)
         
         if len(all_stations) > 1:
             try:
@@ -82,7 +81,7 @@ def optimize_routes_by_region(df_stations):
                 coords = all_stations[station]
                 
                 station_type = station_types[station]
-                icon_color = "green" if station_type == "doadora" else "red"
+                icon_color = "blue" if station_type == "doadora" else "red"
                 
                 popup_text = f"""
                     <div style="font-family: Arial; padding: 5px;">
@@ -102,8 +101,8 @@ def optimize_routes_by_region(df_stations):
                     next_station = optimized_path[i+1]
                     next_coords = all_stations[next_station]
                     
-                    folium.PolyLine(
-                        locations=[coords, next_coords],
+                    folium.GeoJson(
+                        distance_matrix_result["geometry"],
                         color=color,
                         weight=4,
                         opacity=0.8
