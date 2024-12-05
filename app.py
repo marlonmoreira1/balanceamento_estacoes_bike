@@ -42,8 +42,8 @@ df_merged['groups'] = df_merged.apply(get_regions,axis=1)
 city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 
 df_merged = df_merged[df_merged['city']==city]
-st.dataframe(df_merged)
-num_ssa_rec_rio = 11
+
+num_ssa_rec_rio = 6
 num_poa_sp = 6
 
 n = {
@@ -89,8 +89,8 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
-num_ssa_rec_rio = 1
-num_poa_sp = 7
+num_ssa_rec_rio = 2
+num_poa_sp = 10
 
 route_max = final_df.groupby('nearby_station_id').apply(lambda x: x.reset_index(drop=True)).reset_index(drop=True)
 
@@ -124,3 +124,4 @@ regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
 show_map_static_region_route(map_regions_route,filtro=city)
 fim = time.time()
 st.write(fim-inicio)
+st.dataframe(route_closer)

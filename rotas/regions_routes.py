@@ -50,34 +50,32 @@ def optimize_routes_by_region(df_stations):
         station_types = {}
         
         for _, row in df_region.iterrows():
-            start_station = row['name']
-            start_coords = (row['lat'], row['lon'])
+            start_station = row['name_nearby']
+            start_coords = (row['lat_nearby'], row['lon_nearby'])
             all_stations[start_station] = start_coords
             
-            donor_station = row['name_nearby']
-            donor_coords = (row['lat_nearby'], row['lon_nearby'])
+            donor_station = row['name']
+            donor_coords = (row['lat'], row['lon'])
             all_stations[donor_station] = donor_coords
             
             station_types[row['name_nearby']] = "doadora"
             station_types[row['name']] = "vazia"            
             
-            distance = geodesic(donor_coords, start_coords).km
-            G.add_edge(donor_station, start_station, distance=distance)
+            for station1, coords1 in all_stations.items():
+                for station2, coords2 in all_stations.items():
+                    if station1 != station2:
+                        distance = geodesic(coords1, coords2).km
+                        G.add_edge(station1, station2, distance=distance)
         
         if len(all_stations) > 1:
-            try:
-                optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
-            except nx.NetworkXError:
-                optimized_path = list(all_stations.keys())
             
+            optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
+                        
             detailed_route = []
             optimized_coords = [all_stations[station] for station in optimized_path]
+                        
+            distance_matrix_result = get_distance_matrix(optimized_coords)
             
-            try:
-                distance_matrix_result = get_distance_matrix(optimized_coords)
-            except Exception as e:
-                print(f"Erro ao calcular matriz de distância para {region}: {e}")
-                distance_matrix_result = None
             
             for i, station in enumerate(optimized_path):
                 coords = all_stations[station]
@@ -96,27 +94,28 @@ def optimize_routes_by_region(df_stations):
                 folium.Marker(
                     location=coords,
                     popup=popup_text,
+                    tooltip=i,
                     icon=folium.Icon(color=icon_color, icon="info-sign")
                 ).add_to(feature_groups[region])
                 
-                if i < len(optimized_path) - 1:
-                    next_station = optimized_path[i+1]
-                    next_coords = all_stations[next_station]
+                
+                next_station = optimized_path[i]
+                next_coords = all_stations[next_station]
+                
+                folium.GeoJson(
+                    distance_matrix_result["geometry"],
+                    color=color,
+                    weight=4,
+                    opacity=0.8
+                ).add_to(feature_groups[region])
                     
-                    folium.GeoJson(
-                        distance_matrix_result["geometry"],
-                        color=color,
-                        weight=4,
-                        opacity=0.8
-                    ).add_to(feature_groups[region])
                     
-                    if distance_matrix_result:
-                        detailed_route.append({
-                            "start_point": station,
-                            "end_point": next_station,
-                            "distance_km": distance_matrix_result["distance"],
-                            "duration_min": distance_matrix_result["duration"]
-                        })
+                detailed_route.append({
+                    "start_point": station,
+                    "end_point": next_station,
+                    "distance_km": distance_matrix_result["distance"],
+                    "duration_min": distance_matrix_result["duration"]
+                })
             
             regional_routes[region] = {
                 "total_stations": len(all_stations),

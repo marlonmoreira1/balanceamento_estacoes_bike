@@ -35,12 +35,12 @@ def optimize_complete_route_with_map(df_stations):
     
     
     for _, row in df_stations.iterrows():
-        start_station = row['name']
-        start_coords = (row['lat'], row['lon'])
+        start_station = row['name_nearby']
+        start_coords = (row['lat_nearby'], row['lon_nearby'])
         all_stations[start_station] = start_coords
 
-        donor_station = row['name_nearby']
-        donor_coords = (row['lat_nearby'], row['lon_nearby'])
+        donor_station = row['name']
+        donor_coords = (row['lat'], row['lon'])
         all_stations[donor_station] = donor_coords
 
         station_types[row['name_nearby']] = "doadora"
@@ -71,9 +71,9 @@ def optimize_complete_route_with_map(df_stations):
     
     distance_matrix_result = get_distance_matrix(optimized_coords)
     
-    for i in range(len(optimized_path) - 1):
-        start = optimized_path[i]
-        end = optimized_path[i + 1]
+    for i in range(len(optimized_path)-1):
+        start = optimized_path[i-1]
+        end = optimized_path[i]
         
         start_coords = all_stations[start]
         end_coords = all_stations[end]        
@@ -115,6 +115,7 @@ def optimize_complete_route_with_map(df_stations):
         folium.Marker(
             location=start_coords,
             popup=popup_text,
+            tooltip=i,
             icon=folium.Icon(color=icon_color, icon="info-sign")
         ).add_to(m)
                
@@ -122,6 +123,7 @@ def optimize_complete_route_with_map(df_stations):
     folium.Marker(
         location=end_coords,
         popup=popup_text,
+        tooltip=i+1,
         icon=folium.Icon(color=icon_color, icon="info-sign")
     ).add_to(m)
 
