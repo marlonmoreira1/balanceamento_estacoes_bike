@@ -10,6 +10,7 @@ import colorsys
 from scipy.spatial import distance_matrix
 import networkx as nx
 from geopy.distance import geodesic
+from pares.icons_markers import create_marker_text_and_icon
 from rotas.cores_rotas import get_route, generate_distinct_colors
 from rotas.main_map import get_map_html
 from calculate_routes.distance_matrix import get_distance_matrix
@@ -51,12 +52,13 @@ def optimize_complete_route_with_map(df_stations):
             for station2, coords2 in all_stations.items():
                 if station1 != station2:
                     distance = geodesic(coords1, coords2).km
-                    G.add_edge(station1, station2, distance=distance)
+                    if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
+                        distance *= 6  
+                    G.add_edge(station1, station2, distance=distance)    
+        
+    
+    optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")    
 
-    
-    optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
-    
-    
     start_coords = all_stations[optimized_path[0]]
     m = folium.Map(location=[start_coords[0], start_coords[1]], zoom_start=12)
 
@@ -67,23 +69,22 @@ def optimize_complete_route_with_map(df_stations):
     detailed_route = []
     
     optimized_coords = [all_stations[station] for station in optimized_path]
-
     
     distance_matrix_result = get_distance_matrix(optimized_coords)
     
     for i in range(len(optimized_path)-1):
-        start = optimized_path[i-1]
-        end = optimized_path[i]
+        start = optimized_path[i]
+        end = optimized_path[i+1]
         
         start_coords = all_stations[start]
         end_coords = all_stations[end]        
         
-        
         folium.GeoJson(
             distance_matrix_result["geometry"],
-            style_function=lambda x: {"color": color, "weight": 4, "opacity": 0.8}
-        ).add_to(m)
-        
+            color=color,
+            weight=4,
+            opacity=0.8
+        ).add_to(m)        
         
         detailed_route.append({
             "start_point": start,
@@ -91,42 +92,30 @@ def optimize_complete_route_with_map(df_stations):
             "distance_km": distance_matrix_result["distance"],
             "duration_min": distance_matrix_result["duration"]
         })
-
         
-        station_type = station_types[start] 
-        if station_type == "doadora":
-            icon_color = "blue"
-            popup_text = f"""
-                <div style="font-family: Arial; padding: 5px;">
-                    <h4 style="margin: 0;">🔋 {start}</h4>
-                    <p style="margin: 5px 0;">Estação Doadora</p>
-                </div>
-            """
-        else:
-            icon_color = "red"
-            popup_text = f"""
-                <div style="font-family: Arial; padding: 5px;">
-                    <h4 style="margin: 0;">⚡ {start}</h4>
-                    <p style="margin: 5px 0;">Estação Vazia</p>
-                </div>
-            """
+        station_type = station_types[start]        
+        
+        popup_text, icon_color = create_marker_text_and_icon(start, station_types)
                 
             
         folium.Marker(
             location=start_coords,
             popup=popup_text,
-            tooltip=i,
+            tooltip=i+1,
             icon=folium.Icon(color=icon_color, icon="info-sign")
         ).add_to(m)
-               
+
+    last_station = optimized_path[-2]    
+    last_coords = all_stations[last_station]
+    station_type = station_types[last_station]
+    last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_types)               
     
     folium.Marker(
-        location=end_coords,
-        popup=popup_text,
+        location=last_coords,
+        popup=last_popup_text,
         tooltip=i+1,
-        icon=folium.Icon(color=icon_color, icon="info-sign")
+        icon=folium.Icon(color=last_icon_color, icon="info-sign")
     ).add_to(m)
-
     
     plugins.MeasureControl(
         position='topleft',
