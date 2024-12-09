@@ -24,7 +24,7 @@ def get_par(doadoras, vazias):
         lat, lon = row['lat'], row['lon']
 
         
-        dist, idx = tree.query([lat, lon], k=4)
+        dist, idx = tree.query([lat, lon], k=2)
 
         
         for i in range(len(idx)):
