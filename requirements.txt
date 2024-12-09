@@ -9,3 +9,6 @@ plotly
 plotly-express
 streamlit_folium
 streamlit-autorefresh
+slack_sdk
+selenium
+webdriver-manager

@@ -4,6 +4,7 @@ import time
 import random
 import streamlit as st
 import plotly.express as px
+from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
 from rotas.one_route import optimize_complete_route_with_map, show_map_static_one_route
 from rotas.regions_routes import optimize_routes_by_region, show_map_static_region_route
@@ -11,6 +12,7 @@ from rotas.main_map import show_map_static, create_station_map
 from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
 from extracao_carga.collect_data import collect_data
+from alertas.slack_alerts import send_alert
 
 #st_autorefresh(interval=90000, key="refresh_key")
 inicio = time.time()
@@ -41,9 +43,9 @@ df_merged['groups'] = df_merged.apply(get_regions,axis=1)
 
 city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 
-df_merged = df_merged[df_merged['city']==city]
+df_filtered = df_merged[df_merged['city']==city]
 
-num_ssa_rec_rio = 6
+num_ssa_rec_rio = 9
 num_poa_sp = 6
 
 n = {
@@ -68,15 +70,15 @@ def station_type(row):
     return 'normal'
 
 
-df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
+df_filtered['station_type_situation'] = df_filtered.apply(station_type,axis=1)
 
-doadora = df_merged.loc[(df_merged['num_bikes_available']>n[city])&\
-                        (df_merged['status']=='IN_SERVICE'),\
+doadora = df_filtered.loc[(df_filtered['num_bikes_available']>n[city])&\
+                        (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
 
-vazias = df_merged.loc[(df_merged['num_bikes_available']<1)&\
-                       (df_merged['status']=='IN_SERVICE'),\
+vazias = df_filtered.loc[(df_filtered['num_bikes_available']<1)&\
+                       (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 fim = time.time()
 st.write(fim-inicio)
@@ -90,7 +92,7 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
 num_ssa_rec_rio = 2
-num_poa_sp = 10
+num_poa_sp = 5
 
 route_max = final_df.groupby('nearby_station_id').apply(lambda x: x.reset_index(drop=True)).reset_index(drop=True)
 
@@ -100,7 +102,7 @@ st.write(fim-inicio)
 inicio = time.time()
 st.title("Mapa das Estações e Conexões")
 
-mapa_principal = create_station_map(df_merged, df_agrupado)
+mapa_principal = create_station_map(df_filtered)
 
 show_map_static(mapa_principal,filtro=city)
 fim = time.time()
@@ -124,4 +126,14 @@ regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
 show_map_static_region_route(map_regions_route,filtro=city)
 fim = time.time()
 st.write(fim-inicio)
-st.dataframe(route_closer)
+
+
+load_dotenv()
+vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
+                       (df_merged['status']=='IN_SERVICE'),\
+                   ['station_id','num_bikes_available','name','lat',
+                   'lon','address','capacity','status','groups','city']]
+
+vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
+
+send_alert(vazias_alerta)

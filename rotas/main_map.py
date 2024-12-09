@@ -7,7 +7,7 @@ import tempfile
 import base64
 
 
-def create_station_map(df_stations: pd.DataFrame, df_pairs: pd.DataFrame) -> folium.Map:
+def create_station_map(df_stations: pd.DataFrame) -> folium.Map:
     """
     Cria um mapa Folium com todas as estações, categorizadas por tipo de situação e
     conecta as estações vazias às suas respectivas estações doadoras com linhas retas.
