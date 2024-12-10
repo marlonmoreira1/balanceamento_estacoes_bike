@@ -40,21 +40,21 @@ def save_html_as_image(html_path, image_path):
 
 def send_alert(df_vazia):
 
-    vazias = df_vazia.groupby('city')['name']
+    vazias = df_vazia.groupby('city')[['name','groups','capacity']]
 
     for cidade, estacoes in vazias:
-        estacoes_formatado = estacoes.to_string(index=False)
-        message = f"Em {cidade.upper()}, estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
+        #estacoes_formatado = estacoes.to_string(index=False)
+        message = f"Em {cidade.upper()}, estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes}"
         get_message(message)
 
-        mapa = create_station_map(df_vazia[df_vazia['city'] == cidade])
-        html_path = f"mapa_{cidade}.html"
-        image_path = f"mapa_{cidade}.png"
+        # mapa = create_station_map(df_vazia[df_vazia['city'] == cidade])
+        # html_path = f"mapa_{cidade}.html"
+        # image_path = f"mapa_{cidade}.png"
 
-        mapa.save(html_path)  
-        save_html_as_image(html_path, image_path)  
+        # mapa.save(html_path)  
+        # save_html_as_image(html_path, image_path)  
         
-        send_file_to_slack(image_path, title=f"Mapa de {cidade}")
+        # send_file_to_slack(image_path, title=f"Mapa de {cidade}")
 
 
 

@@ -24,30 +24,30 @@ def get_par(doadoras, vazias):
         lat, lon = row['lat'], row['lon']
 
         
-        dist, idx = tree.query([lat, lon], k=2)
+        dist, idx = tree.query([lat, lon], k=1)
 
         
-        for i in range(len(idx)):
-            nearby_data = doadoras.iloc[idx[i]]
-            resultados.append({
-                'station_id': station_id,
-                'name': row['name'],
-                'address': row['address'],
-                'lat': lat,
-                'lon': lon,
-                "groups": row['groups'],
-                'nearby_station_id': nearby_data['station_id'],
-                'distance': dist[i],
-                'address_nearby': nearby_data['address'],
-                'name_nearby': nearby_data['name'],
-                'lat_nearby': nearby_data['lat'],
-                'lon_nearby': nearby_data['lon'],
-                'groups_nearby':nearby_data['groups'],
-                'status': nearby_data['status'],
-                'num_bikes_available': nearby_data['num_bikes_available'],
-                'capacity': nearby_data['capacity']
-            })
+        
+        nearby_data = doadoras.iloc[idx]
+        resultados.append({
+            'station_id': station_id,
+            'name': row['name'],
+            'address': row['address'],
+            'lat': lat,
+            'lon': lon,
+            "groups": row['groups'],
+            'nearby_station_id': nearby_data['station_id'],
+            'distance': dist,
+            'address_nearby': nearby_data['address'],
+            'name_nearby': nearby_data['name'],
+            'lat_nearby': nearby_data['lat'],
+            'lon_nearby': nearby_data['lon'],
+            'groups_nearby':nearby_data['groups'],
+            'status': nearby_data['status'],
+            'num_bikes_available': nearby_data['num_bikes_available'],
+            'capacity': nearby_data['capacity']
+        })
 
     vazia_doadora_par = pd.DataFrame(resultados)
-    vazia_doadora_par['groups'] = vazia_doadora_par.apply(fill_group,axis=1) 
+    #vazia_doadora_par['groups'] = vazia_doadora_par.apply(fill_group,axis=1) 
     return vazia_doadora_par

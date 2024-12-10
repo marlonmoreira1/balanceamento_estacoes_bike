@@ -3,6 +3,7 @@ import requests
 import time
 import random
 import streamlit as st
+from collections import deque
 import plotly.express as px
 from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
@@ -13,8 +14,13 @@ from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
 from extracao_carga.collect_data import collect_data
 from alertas.slack_alerts import send_alert
+from alertas.update_alerts import get_new_stations
+
+if 'historico_requisicoes' not in st.session_state:
+    st.session_state.historico_requisicoes = deque(maxlen=5)
 
 #st_autorefresh(interval=90000, key="refresh_key")
+
 inicio = time.time()
 all_station_information, all_station_status = collect_data()
 fim = time.time()
@@ -46,14 +52,14 @@ city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 df_filtered = df_merged[df_merged['city']==city]
 
 num_ssa_rec_rio = 9
-num_poa_sp = 6
-
+num_poa = 6
+num_sp = 10
 n = {
     "Salvador": num_ssa_rec_rio,
     "Recife": num_ssa_rec_rio,
-    "São Paulo": num_poa_sp,
+    "São Paulo": num_poa,
     "Rio de Janeiro": num_ssa_rec_rio,
-    "Porto Alegre": num_poa_sp
+    "Porto Alegre": num_sp
 }
 
 def station_type(row):
@@ -91,9 +97,9 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
-num_ssa_rec_rio = 2
-num_poa_sp = 5
-
+num_ssa_rec_rio = 1
+num_poa = 3
+num_sp = 1
 route_max = final_df.groupby('nearby_station_id').apply(lambda x: x.reset_index(drop=True)).reset_index(drop=True)
 
 route_closer = df_filter.groupby('station_id').head(n[city])
@@ -126,7 +132,7 @@ regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
 show_map_static_region_route(map_regions_route,filtro=city)
 fim = time.time()
 st.write(fim-inicio)
-
+st.dataframe(regions_optimized)
 
 load_dotenv()
 vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
@@ -136,4 +142,9 @@ vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
 
 vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-send_alert(vazias_alerta)
+novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
+st.dataframe(novas_estacoes)
+for i, requisicao in enumerate(st.session_state.historico_requisicoes):
+    st.write(f"Requisição {i+1}:")
+    st.dataframe(requisicao)
+#send_alert(novas_estacoes)
