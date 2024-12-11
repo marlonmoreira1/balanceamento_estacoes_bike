@@ -16,6 +16,7 @@ from rotas.main_map import get_map_html
 from calculate_routes.distance_matrix import get_distance_matrix
 
 
+@st.cache_data(show_spinner=False)
 def optimize_complete_route_with_map(df_stations):
     """
     Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,
@@ -28,11 +29,11 @@ def optimize_complete_route_with_map(df_stations):
     dict: Dicionário com informações da rota otimizada.
     folium.Map: Mapa Folium com a rota otimizada visualizada.
     """
-    
+        
     G = nx.Graph()    
     
     all_stations = {}
-    station_types = {}  
+    station_types = {}    
     
     
     for _, row in df_stations.iterrows():
@@ -45,7 +46,7 @@ def optimize_complete_route_with_map(df_stations):
         all_stations[donor_station] = donor_coords
 
         station_types[row['name_nearby']] = "doadora"
-        station_types[row['name']] = "vazia"  
+        station_types[row['name']] = "vazia"        
 
 
         for station1, coords1 in all_stations.items():
@@ -53,8 +54,8 @@ def optimize_complete_route_with_map(df_stations):
                 if station1 != station2:
                     distance = geodesic(coords1, coords2).km
                     if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
-                        distance *= 6  
-                    G.add_edge(station1, station2, distance=distance)    
+                        distance *= 5 
+                    G.add_edge(station1, station2, distance=distance)      
         
     
     optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")    

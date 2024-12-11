@@ -113,8 +113,14 @@ mapa_principal = create_station_map(df_filtered)
 show_map_static(mapa_principal,filtro=city)
 fim = time.time()
 st.write(fim-inicio)
-inicio = time.time()
 
+inicio = time.time()
+regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
+show_map_static_region_route(map_regions_route,filtro=city)
+fim = time.time()
+st.write(fim-inicio)
+
+inicio = time.time()
 
 one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer)
 
@@ -127,11 +133,7 @@ for step in one_route_optmized["detailed_route"]:
     st.write(f"De {step['start_point']} para {step['end_point']}")
 fim = time.time()
 st.write(fim-inicio)
-inicio = time.time()
-regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
-show_map_static_region_route(map_regions_route,filtro=city)
-fim = time.time()
-st.write(fim-inicio)
+
 st.dataframe(regions_optimized)
 
 load_dotenv()

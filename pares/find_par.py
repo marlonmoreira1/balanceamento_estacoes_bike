@@ -49,5 +49,5 @@ def get_par(doadoras, vazias):
         })
 
     vazia_doadora_par = pd.DataFrame(resultados)
-    #vazia_doadora_par['groups'] = vazia_doadora_par.apply(fill_group,axis=1) 
+    vazia_doadora_par['groups'] = vazia_doadora_par.apply(fill_group,axis=1) 
     return vazia_doadora_par
