@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import polars as pl
 import requests
 import folium
 from typing import Dict, List, Tuple
@@ -17,7 +18,7 @@ from rotas.cores_rotas import get_route, generate_distinct_colors
 from calculate_routes.distance_matrix import get_distance_matrix
 from rotas.main_map import get_map_html
 
-@st.cache_data(show_spinner=False)
+#@st.cache_data(show_spinner=False)
 def optimize_routes_by_region(df_stations):
     """
     Otimiza rotas para cada região, criando rotas separadas para cada grupo de estações.
@@ -28,7 +29,8 @@ def optimize_routes_by_region(df_stations):
     Returns:
     dict: Dicionário contendo informações de rotas otimizadas por região.
     folium.Map: Um único mapa com todas as rotas.
-    """    
+    """
+    df_polars = pl.from_pandas(df_stations)   
     regional_routes = {}
     colors = ["blue", "red", "green", "purple", "orange", "darkred", "darkblue", "darkgreen"]    
     
@@ -38,10 +40,10 @@ def optimize_routes_by_region(df_stations):
 
     feature_groups = {region: folium.FeatureGroup(name=f"Região {region}") for region in df_stations['groups'].unique()}
 
-    for idx, region in enumerate(df_stations['groups'].unique()):
-        df_region = df_stations[df_stations['groups'] == region]
+    for idx, region in enumerate(df_polars['groups'].unique().to_list()):
+        df_region = df_polars.filter(pl.col("groups") == region)
         
-        if df_region.empty:
+        if df_region.is_empty():
             continue
         
         color = colors[idx % len(colors)]  
@@ -50,7 +52,7 @@ def optimize_routes_by_region(df_stations):
         all_stations = {}
         station_types = {}
         
-        for _, row in df_region.iterrows():
+        for row in df_region.iter_rows(named=True):
             
             donor_station = row['name_nearby']
             donor_coords = (row['lat_nearby'], row['lon_nearby'])
@@ -67,7 +69,7 @@ def optimize_routes_by_region(df_stations):
                     if station1 != station2:
                         distance = geodesic(coords1, coords2).km
                         if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
-                            distance *= 3 
+                            distance *= 4
                         G.add_edge(station1, station2, distance=distance)                   
             
         optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
@@ -102,7 +104,7 @@ def optimize_routes_by_region(df_stations):
             
             station_type = station_types[start]        
         
-            popup_text, icon_color = create_marker_text_and_icon(start, station_types)                    
+            popup_text, icon_color = create_marker_text_and_icon(start, station_type)                    
                 
             folium.Marker(
                 location=start_coords,
@@ -115,7 +117,7 @@ def optimize_routes_by_region(df_stations):
         
         last_coords = all_stations[last_station]
         station_type = station_types[last_station]
-        last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_types)
+        last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_type)
 
         folium.Marker(
             location=last_coords,
@@ -129,9 +131,7 @@ def optimize_routes_by_region(df_stations):
                 "total_stations": len(all_stations),
                 "stations": list(all_stations.keys()),
                 "detailed_route": detailed_route
-            } 
-
-            
+            }             
 
     for group in feature_groups.values():
         group.add_to(m)

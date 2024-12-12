@@ -16,6 +16,7 @@ from extracao_carga.collect_data import collect_data
 from alertas.slack_alerts import send_alert
 from alertas.update_alerts import get_new_stations
 
+
 if 'historico_requisicoes' not in st.session_state:
     st.session_state.historico_requisicoes = deque(maxlen=5)
 
@@ -150,3 +151,19 @@ for i, requisicao in enumerate(st.session_state.historico_requisicoes):
     st.write(f"Requisição {i+1}:")
     st.dataframe(requisicao)
 #send_alert(novas_estacoes)
+
+# inicio = time.time()
+# optimize_complete_route_with_map_pandas(route_closer)
+# fim = time.time()
+# st.write(fim-inicio)
+
+
+# inicio = time.time()
+# optimize_complete_route_with_map_polars(route_closer)
+# fim = time.time()
+# st.write(fim-inicio)
+
+
+
+
+

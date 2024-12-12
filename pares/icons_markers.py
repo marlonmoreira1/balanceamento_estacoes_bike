@@ -1,8 +1,8 @@
-def create_marker_text_and_icon(station, station_types):
+def create_marker_text_and_icon(station, station_type):
     """
     Retorna o texto do popup e a cor do ícone com base no tipo da estação.
     """
-    station_type = station_types[station]
+    
     if station_type == "doadora":
         icon_color = "blue"
         popup_text = f"""

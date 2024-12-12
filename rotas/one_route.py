@@ -1,4 +1,5 @@
 import pandas as pd
+import polars as pl
 import requests
 import folium
 from typing import Dict, List, Tuple
@@ -16,7 +17,7 @@ from rotas.main_map import get_map_html
 from calculate_routes.distance_matrix import get_distance_matrix
 
 
-@st.cache_data(show_spinner=False)
+#@st.cache_data(show_spinner=False)
 def optimize_complete_route_with_map(df_stations):
     """
     Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,
@@ -29,39 +30,44 @@ def optimize_complete_route_with_map(df_stations):
     dict: Dicionário com informações da rota otimizada.
     folium.Map: Mapa Folium com a rota otimizada visualizada.
     """
-        
-    G = nx.Graph()    
+
+    df_polars = pl.from_pandas(df_stations)    
     
-    all_stations = {}
-    station_types = {}    
+    stations_df = pl.concat([
+        df_polars.select(
+            pl.col('name_nearby').alias('station'),
+            pl.col('lat_nearby').alias('lat'),
+            pl.col('lon_nearby').alias('lon')
+        ).with_columns(pl.lit('doadora').alias('type')),
+        df_polars.select(
+            pl.col('name').alias('station'),
+            pl.col('lat').alias('lat'), 
+            pl.col('lon').alias('lon')
+        ).with_columns(pl.lit('vazia').alias('type'))
+    ]).unique(subset='station')    
     
+    stations_df = stations_df.sort(by="type", descending=False)
     
-    for _, row in df_stations.iterrows():
-        start_station = row['name_nearby']
-        start_coords = (row['lat_nearby'], row['lon_nearby'])
-        all_stations[start_station] = start_coords
-
-        donor_station = row['name']
-        donor_coords = (row['lat'], row['lon'])
-        all_stations[donor_station] = donor_coords
-
-        station_types[row['name_nearby']] = "doadora"
-        station_types[row['name']] = "vazia"        
-
-
-        for station1, coords1 in all_stations.items():
-            for station2, coords2 in all_stations.items():
-                if station1 != station2:
-                    distance = geodesic(coords1, coords2).km
-                    if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
-                        distance *= 5 
-                    G.add_edge(station1, station2, distance=distance)      
-        
+    stations_list = stations_df.to_numpy()
+    
+    G = nx.Graph()
+    for i, (station1, lat1, lon1, type1) in enumerate(stations_list):
+        for j, (station2, lat2, lon2, type2) in enumerate(stations_list):
+            if i != j:
+                distance = geodesic((lat1, lon1), (lat2, lon2)).km
+                
+                
+                if type1 == 'vazia' and type2 == 'vazia':
+                    distance *= 4
+                
+                G.add_edge(station1, station2, distance=distance)        
     
     optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")    
 
-    start_coords = all_stations[optimized_path[0]]
-    m = folium.Map(location=[start_coords[0], start_coords[1]], zoom_start=12)
+    start_coords = stations_df.filter(pl.col('station') == optimized_path[0])
+    lat = start_coords.select(pl.col('lat')).item()
+    lon = start_coords.select(pl.col('lon')).item()
+    m = folium.Map(location=[lat, lon], zoom_start=12)
 
     color = "blue"
     
@@ -69,7 +75,10 @@ def optimize_complete_route_with_map(df_stations):
     total_duration = 0
     detailed_route = []
     
-    optimized_coords = [all_stations[station] for station in optimized_path]
+    optimized_coords = [
+    stations_df.filter(pl.col('station') == station).select(['lat', 'lon']).row(0)
+    for station in optimized_path
+    ]
     
     distance_matrix_result = get_distance_matrix(optimized_coords)
     
@@ -77,8 +86,8 @@ def optimize_complete_route_with_map(df_stations):
         start = optimized_path[i]
         end = optimized_path[i+1]
         
-        start_coords = all_stations[start]
-        end_coords = all_stations[end]        
+        start_coords = stations_df.filter(pl.col('station') == start).select(['lat', 'lon']).row(0)
+        end_coords = stations_df.filter(pl.col('station') == end).select(['lat', 'lon']).row(0)        
         
         folium.GeoJson(
             distance_matrix_result["geometry"],
@@ -94,9 +103,9 @@ def optimize_complete_route_with_map(df_stations):
             "duration_min": distance_matrix_result["duration"]
         })
         
-        station_type = station_types[start]        
+        station_type = stations_df.filter(pl.col('station') == start).select('type').item()        
         
-        popup_text, icon_color = create_marker_text_and_icon(start, station_types)
+        popup_text, icon_color = create_marker_text_and_icon(start, station_type)
                 
             
         folium.Marker(
@@ -107,9 +116,9 @@ def optimize_complete_route_with_map(df_stations):
         ).add_to(m)
 
     last_station = optimized_path[-2]    
-    last_coords = all_stations[last_station]
-    station_type = station_types[last_station]
-    last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_types)               
+    last_coords = stations_df.filter(pl.col('station') == last_station).select(['lat', 'lon']).row(0)
+    last_station_type = stations_df.filter(pl.col('station') == last_station).select('type').item()
+    last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, last_station_type)               
     
     folium.Marker(
         location=last_coords,
