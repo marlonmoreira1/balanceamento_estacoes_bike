@@ -151,19 +151,3 @@ for i, requisicao in enumerate(st.session_state.historico_requisicoes):
     st.write(f"Requisição {i+1}:")
     st.dataframe(requisicao)
 #send_alert(novas_estacoes)
-
-# inicio = time.time()
-# optimize_complete_route_with_map_pandas(route_closer)
-# fim = time.time()
-# st.write(fim-inicio)
-
-
-# inicio = time.time()
-# optimize_complete_route_with_map_polars(route_closer)
-# fim = time.time()
-# st.write(fim-inicio)
-
-
-
-
-
