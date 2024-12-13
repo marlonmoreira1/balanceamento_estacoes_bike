@@ -13,3 +13,5 @@ streamlit-autorefresh
 slack_sdk
 selenium
 webdriver-manager
+polyline
+tabulate
