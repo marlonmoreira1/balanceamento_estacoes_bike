@@ -40,25 +40,18 @@ def fetch_data(url):
 
 
 #@st.cache_resource
-def collect_data():
+def collect_data(type):    
     
-    station_information_list = []
-    station_status_list = []
+    station_list = []
     
-    for city, city_urls in urls.items():        
-        station_information = fetch_data(city_urls["station_information"])
-        station_information['city'] = city
-        station_information['new_id'] = city + station_information['station_id']
-        station_information_list.append(station_information)
+    for city, city_urls in urls.items():
 
-        station_status = fetch_data(city_urls["station_status"])
+        station_status = fetch_data(city_urls[type])
         station_status['city'] = city
         station_status['new_id'] = city + station_status['station_id']
-        station_status_list.append(station_status)
+        station_list.append(station_status)    
     
-    all_station_information = pd.concat(station_information_list, ignore_index=True)
-    all_station_status = pd.concat(station_status_list, ignore_index=True)    
+    all_station = pd.concat(station_list, ignore_index=True)    
     
-    
-    return all_station_information, all_station_status
+    return  all_station    
 

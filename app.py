@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+from datetime import datetime, timedelta
 import time
 import random
 import streamlit as st
@@ -13,17 +14,28 @@ from rotas.main_map import show_map_static, create_station_map
 from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
 from extracao_carga.collect_data import collect_data
+from extracao_carga.save_data import atualizar_pilha
 from alertas.slack_alerts import send_alert
 from alertas.update_alerts import get_new_stations
 
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=5)
+    st.session_state.historico_requisicoes = deque(maxlen=3)
 
-#st_autorefresh(interval=90000, key="refresh_key")
+if 'pilha' not in st.session_state:
+    st.session_state.pilha = deque(maxlen=3)
+
+if 'alerts' not in st.session_state:
+    st.session_state.alerts = deque(maxlen=3)
+
+
+pasta_diaria = datetime.now().strftime("%Y-%m-%d")
+
+st_autorefresh(interval=60000, key="refresh_key")
 
 inicio = time.time()
-all_station_information, all_station_status = collect_data()
+all_station_status = collect_data("station_status")
+all_station_information = collect_data("station_information")
 fim = time.time()
 st.write(fim-inicio)
 inicio = time.time()
@@ -52,24 +64,12 @@ city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 
 df_filtered = df_merged[df_merged['city']==city]
 
-num_ssa_rec_rio = 9
-num_poa = 6
-num_sp = 10
-
-n = {
-    "Salvador": num_ssa_rec_rio,
-    "Recife": num_ssa_rec_rio,
-    "São Paulo": num_poa,
-    "Rio de Janeiro": num_ssa_rec_rio,
-    "Porto Alegre": num_sp
-}
-
 def station_type(row):
 
     if row['num_bikes_available']<1 and row['status']=='IN_SERVICE':
         return 'vazia'
 
-    elif row['num_bikes_available']>n[city] and row['status']=='IN_SERVICE':
+    elif row['num_bikes_available']>7 and row['status']=='IN_SERVICE':
         return 'doadora'
 
     elif (row['num_bikes_available']>0 and row['num_bikes_available']<=3) and row['status']=='IN_SERVICE':
@@ -80,7 +80,7 @@ def station_type(row):
 
 df_filtered['station_type_situation'] = df_filtered.apply(station_type,axis=1)
 
-doadora = df_filtered.loc[(df_filtered['num_bikes_available']>n[city])&\
+doadora = df_filtered.loc[(df_filtered['num_bikes_available']>7)&\
                         (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
@@ -102,6 +102,15 @@ final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_availabl
 num_ssa_rec_rio = 1
 num_poa = 3
 num_sp = 1
+
+n = {
+    "Salvador": num_ssa_rec_rio,
+    "Recife": num_ssa_rec_rio,
+    "São Paulo": num_poa,
+    "Rio de Janeiro": num_ssa_rec_rio,
+    "Porto Alegre": num_sp
+}
+
 route_max = final_df.groupby('nearby_station_id').apply(lambda x: x.reset_index(drop=True)).reset_index(drop=True)
 
 route_closer = df_filter.groupby('station_id').head(n[city])
@@ -141,11 +150,27 @@ st.dataframe(regions_optimized)
 load_dotenv()
 vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
                        (df_merged['status']=='IN_SERVICE'),\
-                   ['station_id','num_bikes_available','name','lat',
-                   'lon','address','capacity','status','groups','city']]
+                   ['new_id','station_id','num_bikes_available','name','lat',
+                   'lon', 'last_reported','address','capacity','status','groups','city']]
 
 vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
 novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
 
 send_alert(novas_estacoes)
+st.dataframe(all_station_status)
+st.dataframe(all_station_information)
+df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
+atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
+ 'last_reported','station_type_situation']],
+ st.session_state.pilha,
+  pasta_diaria,
+  "stations"
+  )
+
+atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
+'station_type_situation','last_reported']],
+ st.session_state.alerts,
+  pasta_diaria,
+  "notifications"
+  )

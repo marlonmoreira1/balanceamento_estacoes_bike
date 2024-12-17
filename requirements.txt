@@ -15,3 +15,5 @@ selenium
 webdriver-manager
 polyline
 tabulate
+azure-storage-blob
+pyodbc
