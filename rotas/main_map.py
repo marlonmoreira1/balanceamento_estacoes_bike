@@ -34,8 +34,8 @@ def create_station_map(df_stations: pd.DataFrame) -> folium.Map:
     - folium.Map: Mapa com todas as estações e conexões entre estações vazias e doadoras.
     """
    
-    center_lat = df_stations['lat'].mean()
-    center_lon = df_stations['lon'].mean()
+    center_lat = df_stations['lat'].median()
+    center_lon = df_stations['lon'].median()
     m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
     
@@ -43,7 +43,8 @@ def create_station_map(df_stations: pd.DataFrame) -> folium.Map:
         'doadora': 'blue',
         'vazia': 'red',
         'risco': 'orange',
-        'normal': 'green'
+        'normal': 'green',
+        'indisponivel': 'gray'
     }
 
     
@@ -87,7 +88,7 @@ def get_map_html(mapa):
     
     return html_string
 
-#@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False)
 def get_cached_map_html(mapa):
     return mapa
 

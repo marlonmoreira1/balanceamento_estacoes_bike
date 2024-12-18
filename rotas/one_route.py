@@ -17,7 +17,7 @@ from rotas.main_map import get_map_html
 from calculate_routes.distance_matrix import get_distance_matrix
 
 
-#@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False)
 def optimize_complete_route_with_map(df_stations):
     """
     Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,

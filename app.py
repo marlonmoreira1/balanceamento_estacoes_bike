@@ -31,7 +31,7 @@ if 'alerts' not in st.session_state:
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
 
-st_autorefresh(interval=60000, key="refresh_key")
+#st_autorefresh(interval=60000, key="refresh_key")
 
 inicio = time.time()
 all_station_status = collect_data("station_status")
@@ -74,6 +74,9 @@ def station_type(row):
 
     elif (row['num_bikes_available']>0 and row['num_bikes_available']<=3) and row['status']=='IN_SERVICE':
         return 'risco'
+
+    elif row['status'] != 'IN_SERVICE':
+        return 'indisponivel'
 
     return 'normal'
 
@@ -145,32 +148,30 @@ for step in one_route_optmized["detailed_route"]:
 fim = time.time()
 st.write(fim-inicio)
 
-st.dataframe(regions_optimized)
+# load_dotenv()
+# vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
+#                        (df_merged['status']=='IN_SERVICE'),\
+#                    ['new_id','station_id','num_bikes_available','name','lat',
+#                    'lon', 'last_reported','address','capacity','status','groups','city']]
 
-load_dotenv()
-vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
-                       (df_merged['status']=='IN_SERVICE'),\
-                   ['new_id','station_id','num_bikes_available','name','lat',
-                   'lon', 'last_reported','address','capacity','status','groups','city']]
+# vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
+# novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
 
-novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
+# send_alert(novas_estacoes)
+# st.dataframe(all_station_status)
+# st.dataframe(all_station_information)
+# df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
+# atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
+#  'last_reported','station_type_situation']],
+#  st.session_state.pilha,
+#   pasta_diaria,
+#   "stations"
+#   )
 
-send_alert(novas_estacoes)
-st.dataframe(all_station_status)
-st.dataframe(all_station_information)
-df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
-atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
- 'last_reported','station_type_situation']],
- st.session_state.pilha,
-  pasta_diaria,
-  "stations"
-  )
-
-atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
-'station_type_situation','last_reported']],
- st.session_state.alerts,
-  pasta_diaria,
-  "notifications"
-  )
+# atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
+# 'station_type_situation','last_reported']],
+#  st.session_state.alerts,
+#   pasta_diaria,
+#   "notifications"
+#   )
