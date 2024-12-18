@@ -53,5 +53,4 @@ def collect_data(type):
     
     all_station = pd.concat(station_list, ignore_index=True)    
     
-    return  all_station    
-
+    return  all_station
