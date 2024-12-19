@@ -50,19 +50,19 @@ def optimize_routes_by_region(df_stations):
         
         G = nx.Graph()
         all_stations = {}
-        station_types = {}
+        station_types = {}        
         
         for row in df_region.iter_rows(named=True):
             
             donor_station = row['name_nearby']
             donor_coords = (row['lat_nearby'], row['lon_nearby'])
             all_stations[donor_station] = donor_coords
-            station_types[donor_station] = "doadora"
+            station_types[donor_station] = "doadora"            
             
             empty_station = row['name']
             empty_coords = (row['lat'], row['lon'])
             all_stations[empty_station] = empty_coords
-            station_types[empty_station] = "vazia"            
+            station_types[empty_station] = "vazia"                      
             
             for station1, coords1 in all_stations.items():
                 for station2, coords2 in all_stations.items():
@@ -97,12 +97,10 @@ def optimize_routes_by_region(df_stations):
                 "start_point": start,
                 "start_coords": start_coords,
                 "end_coords": end_coords,
-                "end_point": end,
-                "distance_km": distance_matrix_result["distance"],
-                "duration_min": distance_matrix_result["duration"]
+                "end_point": end                
             })            
             
-            station_type = station_types[start]        
+            station_type = station_types[start]                  
         
             popup_text, icon_color = create_marker_text_and_icon(start, station_type)                    
                 
@@ -117,6 +115,7 @@ def optimize_routes_by_region(df_stations):
         
         last_coords = all_stations[last_station]
         station_type = station_types[last_station]
+        
         last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_type)
 
         folium.Marker(
@@ -130,6 +129,8 @@ def optimize_routes_by_region(df_stations):
         regional_routes[region] = {
                 "total_stations": len(all_stations),
                 "stations": list(all_stations.keys()),
+                "distance_km": distance_matrix_result["distance"],
+                "duration_min": distance_matrix_result["duration"],
                 "detailed_route": detailed_route
             }             
 

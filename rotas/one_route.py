@@ -98,15 +98,12 @@ def optimize_complete_route_with_map(df_stations):
         
         detailed_route.append({
             "start_point": start,
-            "end_point": end,
-            "distance_km": distance_matrix_result["distance"],
-            "duration_min": distance_matrix_result["duration"]
+            "end_point": end            
         })
         
-        station_type = stations_df.filter(pl.col('station') == start).select('type').item()        
+        station_type = stations_df.filter(pl.col('station') == start).select('type').item()                        
         
-        popup_text, icon_color = create_marker_text_and_icon(start, station_type)
-                
+        popup_text, icon_color = create_marker_text_and_icon(start, station_type)                
             
         folium.Marker(
             location=start_coords,
@@ -118,6 +115,7 @@ def optimize_complete_route_with_map(df_stations):
     last_station = optimized_path[-2]    
     last_coords = stations_df.filter(pl.col('station') == last_station).select(['lat', 'lon']).row(0)
     last_station_type = stations_df.filter(pl.col('station') == last_station).select('type').item()
+    
     last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, last_station_type)               
     
     folium.Marker(
@@ -135,8 +133,8 @@ def optimize_complete_route_with_map(df_stations):
 
     
     optimized_route_info = {
-        "total_distance_km": total_distance,
-        "total_duration_min": total_duration,
+        "total_distance_km": distance_matrix_result["distance"],
+        "total_duration_min": distance_matrix_result["duration"],
         "detailed_route": detailed_route
     }
     

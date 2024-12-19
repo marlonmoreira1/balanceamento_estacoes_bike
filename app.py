@@ -131,6 +131,9 @@ st.write(fim-inicio)
 inicio = time.time()
 regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
 show_map_static_region_route(map_regions_route,filtro=city)
+
+for regiao, info in regions_optimized.items():
+    st.write(f"Distância Total: {info['distance_km']} e Duração Total: {info['duration_min']}")
 fim = time.time()
 st.write(fim-inicio)
 
