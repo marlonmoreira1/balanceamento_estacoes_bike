@@ -18,7 +18,7 @@ from calculate_routes.distance_matrix import get_distance_matrix
 
 
 @st.cache_data(show_spinner=False)
-def optimize_complete_route_with_map(df_stations):
+def optimize_complete_route_with_map(df_stations,df):
     """
     Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,
     obtém as rotas detalhadas entre as estações na sequência otimizada e plota no mapa.
@@ -32,7 +32,7 @@ def optimize_complete_route_with_map(df_stations):
     """
 
     df_polars = pl.from_pandas(df_stations)    
-    
+    complete_df = pl.from_pandas(df)
     stations_df = pl.concat([
         df_polars.select(
             pl.col('name_nearby').alias('station'),
@@ -58,7 +58,7 @@ def optimize_complete_route_with_map(df_stations):
                 
                 
                 if type1 == 'vazia' and type2 == 'vazia':
-                    distance *= 4
+                    distance *= 5
                 
                 G.add_edge(station1, station2, distance=distance)        
     
@@ -101,9 +101,11 @@ def optimize_complete_route_with_map(df_stations):
             "end_point": end            
         })
         
-        station_type = stations_df.filter(pl.col('station') == start).select('type').item()                        
+        station_type = stations_df.filter(pl.col('station') == start).select('type').item()
+        num_bikes = complete_df.filter(pl.col('name') == start).select('num_bikes_available').item()
+        capacity = complete_df.filter(pl.col('name') == start).select('capacity').item()                        
         
-        popup_text, icon_color = create_marker_text_and_icon(start, station_type)                
+        popup_text, icon_color = create_marker_text_and_icon(start, num_bikes, capacity, station_type)                
             
         folium.Marker(
             location=start_coords,
@@ -115,8 +117,10 @@ def optimize_complete_route_with_map(df_stations):
     last_station = optimized_path[-2]    
     last_coords = stations_df.filter(pl.col('station') == last_station).select(['lat', 'lon']).row(0)
     last_station_type = stations_df.filter(pl.col('station') == last_station).select('type').item()
+    last_bikes = complete_df.filter(pl.col('name') == last_station).select('num_bikes_available').item()
+    last_capacity = complete_df.filter(pl.col('name') == last_station).select('capacity').item()
     
-    last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, last_station_type)               
+    last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, last_bikes, last_capacity, last_station_type)               
     
     folium.Marker(
         location=last_coords,

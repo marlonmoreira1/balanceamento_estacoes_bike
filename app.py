@@ -69,7 +69,7 @@ def station_type(row):
     if row['num_bikes_available']<1 and row['status']=='IN_SERVICE':
         return 'vazia'
 
-    elif row['num_bikes_available']>7 and row['status']=='IN_SERVICE':
+    elif row['num_bikes_available']>6 and row['status']=='IN_SERVICE':
         return 'doadora'
 
     elif (row['num_bikes_available']>0 and row['num_bikes_available']<=3) and row['status']=='IN_SERVICE':
@@ -83,7 +83,7 @@ def station_type(row):
 
 df_filtered['station_type_situation'] = df_filtered.apply(station_type,axis=1)
 
-doadora = df_filtered.loc[(df_filtered['num_bikes_available']>7)&\
+doadora = df_filtered.loc[(df_filtered['num_bikes_available']>6)&\
                         (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
@@ -103,8 +103,8 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
 num_ssa_rec_rio = 1
-num_poa = 3
-num_sp = 1
+num_poa = 4
+num_sp = 3
 
 n = {
     "Salvador": num_ssa_rec_rio,
@@ -129,7 +129,7 @@ fim = time.time()
 st.write(fim-inicio)
 
 inicio = time.time()
-regions_optimized, map_regions_route = optimize_routes_by_region(route_closer)
+regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
 show_map_static_region_route(map_regions_route,filtro=city)
 
 for regiao, info in regions_optimized.items():
@@ -139,7 +139,7 @@ st.write(fim-inicio)
 
 inicio = time.time()
 
-one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer)
+one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
 
 show_map_static_one_route(map_one_route,filtro=city)
 
@@ -178,3 +178,4 @@ st.write(fim-inicio)
 #   pasta_diaria,
 #   "notifications"
 #   )
+

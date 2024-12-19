@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import time
 import random
 import streamlit as st
-from folium import plugins, FeatureGroup
+from folium import plugins, FeatureGroup, DivIcon
 import colorsys
 from scipy.spatial import distance_matrix
 from scipy.cluster.hierarchy import linkage, fcluster
@@ -19,7 +19,7 @@ from calculate_routes.distance_matrix import get_distance_matrix
 from rotas.main_map import get_map_html
 
 @st.cache_data(show_spinner=False)
-def optimize_routes_by_region(df_stations):
+def optimize_routes_by_region(df_stations,df):
     """
     Otimiza rotas para cada região, criando rotas separadas para cada grupo de estações.
 
@@ -30,7 +30,8 @@ def optimize_routes_by_region(df_stations):
     dict: Dicionário contendo informações de rotas otimizadas por região.
     folium.Map: Um único mapa com todas as rotas.
     """
-    df_polars = pl.from_pandas(df_stations)   
+    df_polars = pl.from_pandas(df_stations)
+    complete_df = pl.from_pandas(df)   
     regional_routes = {}
     colors = ["blue", "red", "green", "purple", "orange", "darkred", "darkblue", "darkgreen"]    
     
@@ -69,7 +70,7 @@ def optimize_routes_by_region(df_stations):
                     if station1 != station2:
                         distance = geodesic(coords1, coords2).km
                         if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
-                            distance *= 4
+                            distance *= 13
                         G.add_edge(station1, station2, distance=distance)                   
             
         optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
@@ -100,9 +101,11 @@ def optimize_routes_by_region(df_stations):
                 "end_point": end                
             })            
             
-            station_type = station_types[start]                  
+            station_type = station_types[start]
+            num_bikes = complete_df.filter(pl.col('name') == start).select('num_bikes_available').item()
+            capacity = complete_df.filter(pl.col('name') == start).select('capacity').item()                 
         
-            popup_text, icon_color = create_marker_text_and_icon(start, station_type)                    
+            popup_text, icon_color = create_marker_text_and_icon(start, num_bikes, capacity, station_type)                              
                 
             folium.Marker(
                 location=start_coords,
@@ -115,8 +118,10 @@ def optimize_routes_by_region(df_stations):
         
         last_coords = all_stations[last_station]
         station_type = station_types[last_station]
+        last_bikes = complete_df.filter(pl.col('name') == last_station).select('num_bikes_available').item()
+        last_capacity = complete_df.filter(pl.col('name') == last_station).select('capacity').item()
         
-        last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, station_type)
+        last_popup_text, last_icon_color = create_marker_text_and_icon(last_station, last_bikes, last_capacity, station_type)       
 
         folium.Marker(
             location=last_coords,
