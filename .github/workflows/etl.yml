@@ -38,5 +38,5 @@ jobs:
         TN: ${{ secrets.TN }}
         TSR: ${{ secrets.TSR }}             
       run: |
-        python daily_etl.py
+        python extracao_carga/daily_etl.py
     
