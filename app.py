@@ -24,10 +24,10 @@ if 'historico_requisicoes' not in st.session_state:
     st.session_state.historico_requisicoes = deque(maxlen=150)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=15)
+    st.session_state.pilha = deque(maxlen=50)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=15)
+    st.session_state.alerts = deque(maxlen=50)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
