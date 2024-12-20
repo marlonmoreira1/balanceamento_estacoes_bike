@@ -190,12 +190,12 @@ atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available
  'last_reported','station_type_situation']],
  st.session_state.pilha,
   pasta_diaria,
-  "stations"
+  st.secrets['CONTAINER_NAME']
   )
 
 atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
 'station_type_situation','last_reported']],
  st.session_state.alerts,
   pasta_diaria,
-  "notifications"
+  st.secrets['CN']
   )
