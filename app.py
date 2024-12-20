@@ -21,7 +21,7 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=180)
+    st.session_state.historico_requisicoes = deque(maxlen=15)
 
 if 'pilha' not in st.session_state:
     st.session_state.pilha = deque(maxlen=15)
@@ -184,8 +184,7 @@ vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=
 novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
 
 send_alert(novas_estacoes)
-st.dataframe(all_station_status)
-st.dataframe(all_station_information)
+
 atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
  'last_reported','station_type_situation']],
  st.session_state.pilha,
