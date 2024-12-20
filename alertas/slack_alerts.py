@@ -4,7 +4,7 @@ from slack_sdk import WebClient
 from tabulate import tabulate
 
 def get_message(message):
-    client = WebClient(token=st.secrets["SLACK_TOKEN"])
+    client = WebClient(token=os.environ["SLACK_TOKEN"])
 
     client.chat_postMessage(
         channel="alertas-de-vazias", 
