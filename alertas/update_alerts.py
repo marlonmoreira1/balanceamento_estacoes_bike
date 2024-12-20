@@ -3,7 +3,7 @@ import pandas as pd
 def get_new_stations(novos_dados, historico_requisicoes):    
     
     if historico_requisicoes:
-        ultimo_df = historico_requisicoes[-1]  
+        ultimo_df = historico_requisicoes  
         ultimo_ids = set(ultimo_df['station_id'])  
     else:
         ultimo_ids = set()
