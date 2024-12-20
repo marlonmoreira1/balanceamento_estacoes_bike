@@ -21,13 +21,13 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=150)
+    st.session_state.historico_requisicoes = deque(maxlen=5)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=50)
+    st.session_state.pilha = deque(maxlen=10)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=50)
+    st.session_state.alerts = deque(maxlen=10)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
@@ -198,3 +198,8 @@ atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
   pasta_diaria,
   st.secrets['CN']
   )
+
+
+st.dataframe(st.session_state.historico_requisicoes)
+st.dataframe(st.session_state.pilha)
+st.dataframe(st.session_state.alerts)
