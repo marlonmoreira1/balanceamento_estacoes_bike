@@ -101,7 +101,7 @@ def optimize_routes_by_region(df_stations,df):
                 "end_point": end                
             })            
             
-            station_type = station_types[start]
+            station_type = complete_df.filter(pl.col('name') == start).select('station_type_situation').item()
             num_bikes = complete_df.filter(pl.col('name') == start).select('num_bikes_available').item()
             capacity = complete_df.filter(pl.col('name') == start).select('capacity').item()                 
         

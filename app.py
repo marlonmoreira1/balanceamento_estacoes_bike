@@ -18,20 +18,21 @@ from extracao_carga.save_data import atualizar_pilha
 from alertas.slack_alerts import send_alert
 from alertas.update_alerts import get_new_stations
 
+st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=3)
+    st.session_state.historico_requisicoes = deque(maxlen=180)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=3)
+    st.session_state.pilha = deque(maxlen=15)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=3)
+    st.session_state.alerts = deque(maxlen=15)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
 
-#st_autorefresh(interval=60000, key="refresh_key")
+st_autorefresh(interval=30000, key="refresh_key")
 
 inicio = time.time()
 all_station_status = collect_data("station_status")
@@ -102,9 +103,11 @@ df_agrupado = df_filter.groupby('station_id').head(2)
 
 final_df = df_agrupado.loc[df_agrupado.groupby('station_id')['num_bikes_available'].idxmax()]
 
-num_ssa_rec_rio = 1
-num_poa = 4
-num_sp = 3
+df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
+
+num_ssa_rec_rio = 2
+num_poa = 2
+num_sp = 2
 
 n = {
     "Salvador": num_ssa_rec_rio,
@@ -132,8 +135,16 @@ inicio = time.time()
 regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
 show_map_static_region_route(map_regions_route,filtro=city)
 
-for regiao, info in regions_optimized.items():
-    st.write(f"Distância Total: {info['distance_km']} e Duração Total: {info['duration_min']}")
+st.subheader("Sumário por Região")
+cols = st.columns(len(regions_optimized))
+for col, (regiao, info) in zip(cols, regions_optimized.items()):
+    with col:
+        st.metric(
+            label=f"Região {regiao}",
+            value=f"{round(info['distance_km'], 1)} km",
+            delta=f"{round(info['duration_min'], 1)} min",
+            delta_color="off"
+        )
 fim = time.time()
 st.write(fim-inicio)
 
@@ -143,39 +154,48 @@ one_route_optmized, map_one_route = optimize_complete_route_with_map(route_close
 
 show_map_static_one_route(map_one_route,filtro=city)
 
-st.write("Distância total da rota otimizada:", one_route_optmized["total_distance_km"], "km")
-st.write("Tempo total da rota otimizada:", one_route_optmized["total_duration_min"], "minutos")
-st.write("Rota otimizada:")
-for step in one_route_optmized["detailed_route"]:
-    st.write(f"De {step['start_point']} para {step['end_point']}")
+col1, col2 = st.columns(2)
+with col1:
+    st.metric(
+        label="Distância Total da Rota",
+        value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
+    )
+with col2:
+    st.metric(
+        label="Tempo Total da Rota",
+        value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
+    )
+
+
+with st.expander("Ver Detalhes da Rota", expanded=True):
+    for step in one_route_optmized["detailed_route"]:
+        st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
 fim = time.time()
 st.write(fim-inicio)
 
-# load_dotenv()
-# vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
-#                        (df_merged['status']=='IN_SERVICE'),\
-#                    ['new_id','station_id','num_bikes_available','name','lat',
-#                    'lon', 'last_reported','address','capacity','status','groups','city']]
+load_dotenv()
+vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
+                       (df_merged['status']=='IN_SERVICE'),\
+                   ['new_id','station_id','num_bikes_available','name','lat',
+                   'lon', 'last_reported','address','capacity','status','groups','city']]
 
-# vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
+vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-# novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
+novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
 
-# send_alert(novas_estacoes)
-# st.dataframe(all_station_status)
-# st.dataframe(all_station_information)
-# df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
-# atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
-#  'last_reported','station_type_situation']],
-#  st.session_state.pilha,
-#   pasta_diaria,
-#   "stations"
-#   )
+send_alert(novas_estacoes)
+st.dataframe(all_station_status)
+st.dataframe(all_station_information)
+atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
+ 'last_reported','station_type_situation']],
+ st.session_state.pilha,
+  pasta_diaria,
+  "stations"
+  )
 
-# atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
-# 'station_type_situation','last_reported']],
-#  st.session_state.alerts,
-#   pasta_diaria,
-#   "notifications"
-#   )
-
+atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
+'station_type_situation','last_reported']],
+ st.session_state.alerts,
+  pasta_diaria,
+  "notifications"
+  )

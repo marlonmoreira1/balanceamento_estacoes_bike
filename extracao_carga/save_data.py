@@ -18,6 +18,6 @@ def salvar_no_blob(pilha, pasta,container):
 
 def atualizar_pilha(df, pilha, pasta,container):
     pilha.append(df)
-    if len(pilha) == 3:  
+    if len(pilha) == 15:  
         salvar_no_blob(pilha, pasta,container)
         pilha.clear()
