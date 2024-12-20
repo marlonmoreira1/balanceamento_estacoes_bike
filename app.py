@@ -21,7 +21,7 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=15)
+    st.session_state.historico_requisicoes = deque(maxlen=150)
 
 if 'pilha' not in st.session_state:
     st.session_state.pilha = deque(maxlen=15)
