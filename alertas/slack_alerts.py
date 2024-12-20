@@ -17,7 +17,7 @@ def send_alert(df_vazia):
 
     vazias = df_vazia.groupby('city')[['name','groups','capacity']].apply(lambda x: x.reset_index(drop=True))
 
-    for cidade, estacoes in vazias:
+    for cidade, estacoes in vazias.groupby('city'):
         estacoes_formatado = tabulate(estacoes, headers=['name','groups','capacity'],tablefmt='grid')
         message = f"Em {cidade.upper()}, estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
         get_message(message)
