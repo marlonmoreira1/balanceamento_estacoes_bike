@@ -25,8 +25,18 @@ jobs:
         
     - name: Run data collection and loading script
       env:
-        CONNECT_STR: ${{ secrets.CONNECT_STR }}
-        CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}        
+        CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+        CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+        BLOB_CONNECTION_STRING: ${{ secrets.BLOB_CONNECTION_STRING }}
+        SERVER: ${{ secrets.SERVER }}
+        DATABASE: ${{ secrets.DATABASE }}
+        UID: ${{ secrets.UID }}
+        PWD: ${{ secrets.PWD }}
+        TS: ${{ secrets.TS }}
+        TI: ${{ secrets.TI }}
+        CN: ${{ secrets.CN }}
+        TN: ${{ secrets.TN }}
+        TSR: ${{ secrets.TSR }}             
       run: |
         python daily_etl.py
     
