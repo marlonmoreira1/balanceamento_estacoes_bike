@@ -23,8 +23,9 @@ def send_alert(df_vazia):
     
     timestamp = datetime.datetime.now()
 
-    vazias = df_vazia.groupby('city')[['name','groups','capacity']] 
-    alerts_filtro = st.session_state.alerts[-1]
+    vazias = df_vazia.groupby('city')[['name','groups','capacity']]
+    if len(st.session_state.alerts):
+        alerts_filtro = st.session_state.alerts[-1]
 
     for cidade, estacoes in vazias:
         estacoes_formatado = tabulate(estacoes, headers=['name','groups','capacity'],tablefmt='grid',showindex=False)
