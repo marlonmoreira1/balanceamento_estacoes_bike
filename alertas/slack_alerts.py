@@ -29,7 +29,8 @@ def send_alert(df_vazia):
         estacoes_formatado = tabulate(estacoes, headers=['name','groups','capacity'],tablefmt='grid',showindex=False)
         message = f"Na {cidade.upper()},e hora = {timestamp}; estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
 
-        if len(st.session_state.alerts)>0 and len(st.session_state.alerts[-1])>0:
+        if len(df_vazia):
+            time.sleep(2)
             get_message(message)
             time.sleep(2)
 

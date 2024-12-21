@@ -22,13 +22,13 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=3)
+    st.session_state.historico_requisicoes = deque(maxlen=6)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=3)
+    st.session_state.pilha = deque(maxlen=6)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=3)
+    st.session_state.alerts = deque(maxlen=6)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")

@@ -21,5 +21,5 @@ def salvar_no_blob(pilha, pasta,container):
     container_client.upload_blob(name=nome_arquivo, data=buffer, overwrite=True)   
 
 def atualizar_pilha(pilha, pasta,container):    
-    if len(st.session_state.pilha) == 3:  
+    if len(st.session_state.pilha) == 6:  
         salvar_no_blob(pilha, pasta,container)                
