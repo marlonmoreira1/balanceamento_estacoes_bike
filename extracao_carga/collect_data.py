@@ -39,7 +39,7 @@ def fetch_data(url):
     return pd.DataFrame()
 
 
-#@st.cache_data(ttl=60,show_spinner=False)
+@st.cache_data(ttl=60,show_spinner=False)
 def collect_data(type):    
     
     station_list = []

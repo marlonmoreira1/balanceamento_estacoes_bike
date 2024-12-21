@@ -182,9 +182,12 @@ vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
 
 vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-novas_estacoes = get_new_stations(vazias_alerta)
-
-send_alert(novas_estacoes)
+novas_estacoes,ids = get_new_stations(vazias_alerta)
+for i, requisicao in enumerate(st.session_state.historico_requisicoes):
+    st.write(f"Requisição de cima antes dos ids {i+1}:")
+    st.dataframe(requisicao)
+st.write(ids)
+#send_alert(novas_estacoes)
 
 st.session_state.pilha.append(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
 'last_reported','station_type_situation']])

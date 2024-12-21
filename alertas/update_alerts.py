@@ -15,4 +15,4 @@ def get_new_stations(novos_dados):
     novas_estacoes_df = novos_dados[novos_dados['new_id'].isin(novas_estacoes_ids)]
         
     
-    return novas_estacoes_df
+    return novas_estacoes_df,ultimo_ids
