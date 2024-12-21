@@ -2,11 +2,12 @@ import pandas as pd
 import streamlit as st
 import os
 import datetime
+import time
 from slack_sdk import WebClient
 from tabulate import tabulate
 
 def get_message(message):
-    client = WebClient(token=st.secrets["SLACK_TOKEN"],timeout=30,logging=True)
+    client = WebClient(token=st.secrets["SLACK_TOKEN"],timeout=30)
 
     client.chat_postMessage(
         channel="alertas-de-vazias", 
@@ -30,6 +31,7 @@ def send_alert(df_vazia):
 
         if len(st.session_state.alerts)>0 and len(st.session_state.alerts[-1])>0:
             get_message(message)
+            time.sleep(2)
 
         
           
