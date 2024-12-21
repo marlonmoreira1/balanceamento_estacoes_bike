@@ -182,7 +182,7 @@ vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
 
 vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-novas_estacoes = get_new_stations(vazias_alerta)
+novas_estacoes = get_new_stations(vazias_alerta,st.session_state.historico_requisicoes)
 
 send_alert(novas_estacoes)
 
