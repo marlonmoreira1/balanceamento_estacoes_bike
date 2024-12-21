@@ -3,11 +3,10 @@ import streamlit as st
 import os
 import datetime
 from slack_sdk import WebClient
-from slack_bolt import App
 from tabulate import tabulate
 
 def get_message(message):
-    client = App(token=st.secrets["SLACK_TOKEN"])
+    client = WebClient(token=st.secrets["SLACK_TOKEN"],timeout=30,logging=True)
 
     client.chat_postMessage(
         channel="alertas-de-vazias", 
