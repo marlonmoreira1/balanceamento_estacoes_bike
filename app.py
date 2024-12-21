@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 import time
+import os
 import random
 import streamlit as st
 from collections import deque
@@ -21,18 +22,18 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=5)
+    st.session_state.historico_requisicoes = deque(maxlen=50)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=10)
+    st.session_state.pilha = deque(maxlen=50)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=10)
+    st.session_state.alerts = deque(maxlen=50)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
 
-st_autorefresh(interval=30000, key="refresh_key")
+st_autorefresh(interval=60000, key="refresh_key")
 
 inicio = time.time()
 all_station_status = collect_data("station_status")
@@ -181,25 +182,44 @@ vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
 
 vazias_alerta['station_type_situation'] = vazias_alerta.apply(station_type,axis=1)
 
-novas_estacoes = get_new_stations(vazias_alerta, st.session_state.historico_requisicoes)
+novas_estacoes = get_new_stations(vazias_alerta)
 
 send_alert(novas_estacoes)
 
-atualizar_pilha(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
- 'last_reported','station_type_situation']],
- st.session_state.pilha,
-  pasta_diaria,
-  st.secrets['CONTAINER_NAME']
+st.session_state.pilha.append(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
+'last_reported','station_type_situation']])
+
+st.session_state.alerts.append(novas_estacoes[['new_id', 'num_bikes_available',
+'station_type_situation','last_reported']])
+
+st.session_state.historico_requisicoes.append(novas_estacoes)
+
+atualizar_pilha(
+st.session_state.pilha,
+pasta_diaria,
+st.secrets['CONTAINER_NAME']
   )
 
-atualizar_pilha(novas_estacoes[['new_id', 'num_bikes_available',
-'station_type_situation','last_reported']],
- st.session_state.alerts,
-  pasta_diaria,
-  st.secrets['CN']
+atualizar_pilha(
+st.session_state.alerts,
+pasta_diaria,
+st.secrets['CN']
   )
 
 
-st.dataframe(st.session_state.historico_requisicoes)
-st.dataframe(st.session_state.pilha)
-st.dataframe(st.session_state.alerts)
+for i, requisicao in enumerate(st.session_state.historico_requisicoes):
+    st.write(f"Requisição {i+1}:")
+    st.dataframe(requisicao)
+for i, alerta in enumerate(st.session_state.alerts):
+    st.write(f"Requisição {i+1}:")
+    st.dataframe(alerta)
+for i, pilha in enumerate(st.session_state.pilha):
+    st.write(f"Requisição {i+1}:")
+    st.dataframe(pilha)
+
+st.dataframe(novas_estacoes)
+
+if len(st.session_state.pilha)==50:
+    st.session_state.alerts.clear()
+    st.session_state.pilha.clear()
+
