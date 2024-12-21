@@ -22,13 +22,13 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=50)
+    st.session_state.historico_requisicoes = deque(maxlen=5)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=50)
+    st.session_state.pilha = deque(maxlen=5)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=50)
+    st.session_state.alerts = deque(maxlen=5)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
@@ -189,6 +189,7 @@ for i, requisicao in enumerate(st.session_state.historico_requisicoes):
 
 st.write(ids)
 if len(ids)>0:
+    st.write("entrei aqui")
     send_alert(novas_estacoes)
 
 st.session_state.pilha.append(df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
@@ -224,7 +225,7 @@ for i, pilha in enumerate(st.session_state.pilha):
 
 st.dataframe(novas_estacoes)
 
-if len(st.session_state.pilha)==50:
+if len(st.session_state.pilha)==5:
     st.session_state.alerts.clear()
     st.session_state.pilha.clear()
 
