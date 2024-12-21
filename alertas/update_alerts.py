@@ -1,10 +1,10 @@
 import pandas as pd
 import streamlit as st
 
-def get_new_stations(novos_dados,pilha):    
+def get_new_stations(novos_dados):    
     
     if st.session_state.historico_requisicoes:
-        combinado_df = pd.concat(pilha, ignore_index=True)   
+        combinado_df = pd.concat(st.session_state.historico_requisicoes, ignore_index=True)   
         ultimo_ids = set(combinado_df['station_id'])  
     else:
         ultimo_ids = set()
