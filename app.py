@@ -188,6 +188,7 @@ for i, requisicao in enumerate(st.session_state.historico_requisicoes):
     st.dataframe(requisicao)
 
 st.write(ids)
+st.dataframe(novas_estacoes)
 if len(ids)>0:
     st.write("entrei aqui")
     send_alert(novas_estacoes)

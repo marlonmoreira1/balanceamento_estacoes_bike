@@ -17,3 +17,4 @@ polyline
 tabulate
 azure-storage-blob
 pyodbc
+slack_bolt
