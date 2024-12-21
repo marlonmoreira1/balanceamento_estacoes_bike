@@ -226,7 +226,7 @@ for i, pilha in enumerate(st.session_state.pilha):
 
 st.dataframe(novas_estacoes)
 
-if len(st.session_state.pilha)==3:
+if len(st.session_state.pilha)==6:
     st.session_state.alerts.clear()
     st.session_state.pilha.clear()
 
