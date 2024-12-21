@@ -174,7 +174,7 @@ with st.expander("Ver Detalhes da Rota", expanded=True):
 fim = time.time()
 st.write(fim-inicio)
 
-load_dotenv()
+
 vazias_alerta = df_merged.loc[(df_merged['num_bikes_available']<1)&\
                        (df_merged['status']=='IN_SERVICE'),\
                    ['new_id','station_id','num_bikes_available','name','lat',
