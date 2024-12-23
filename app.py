@@ -22,18 +22,18 @@ from alertas.update_alerts import get_new_stations
 st.set_page_config(page_title='Interesses',layout='wide')
 
 if 'historico_requisicoes' not in st.session_state:
-    st.session_state.historico_requisicoes = deque(maxlen=15)
+    st.session_state.historico_requisicoes = deque(maxlen=10)
 
 if 'pilha' not in st.session_state:
-    st.session_state.pilha = deque(maxlen=6)
+    st.session_state.pilha = deque(maxlen=10)
 
 if 'alerts' not in st.session_state:
-    st.session_state.alerts = deque(maxlen=6)
+    st.session_state.alerts = deque(maxlen=10)
 
 
 pasta_diaria = datetime.now().strftime("%Y-%m-%d")
 
-st_autorefresh(interval=60000, key="refresh_key")
+st_autorefresh(interval=300000, key="refresh_key")
 
 inicio = time.time()
 all_station_status = collect_data("station_status")
@@ -189,7 +189,7 @@ for i, requisicao in enumerate(st.session_state.historico_requisicoes):
 
 st.write(ids)
 st.dataframe(novas_estacoes)
-if len(ids)>0:
+if len(st.session_state.alerts)==10:
     st.write("entrei aqui")
     send_alert(novas_estacoes)
 
@@ -201,16 +201,18 @@ st.session_state.alerts.append(novas_estacoes[['new_id', 'num_bikes_available',
 
 st.session_state.historico_requisicoes.append(vazias_alerta)
 
+load_dotenv()
+
 atualizar_pilha(
 st.session_state.pilha,
 pasta_diaria,
-st.secrets['CONTAINER_NAME']
+os.environ['CONTAINER_NAME']
   )
 
 atualizar_pilha(
 st.session_state.alerts,
 pasta_diaria,
-st.secrets['CN']
+os.environ['CN']
   )
 
 
@@ -226,7 +228,7 @@ for i, pilha in enumerate(st.session_state.pilha):
 
 st.dataframe(novas_estacoes)
 
-if len(st.session_state.pilha)==6:
+if len(st.session_state.pilha)==10:
     st.session_state.alerts.clear()
     st.session_state.pilha.clear()
 
