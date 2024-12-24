@@ -2,12 +2,8 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 import time
-import os
 import random
 import streamlit as st
-from collections import deque
-import plotly.express as px
-from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
 from rotas.one_route import optimize_complete_route_with_map, show_map_static_one_route
 from rotas.regions_routes import optimize_routes_by_region, show_map_static_region_route
@@ -15,9 +11,7 @@ from rotas.main_map import show_map_static, create_station_map
 from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
 from extracao_carga.collect_data import collect_data
-from extracao_carga.save_data import atualizar_pilha
-from alertas.slack_alerts import send_alert
-from alertas.update_alerts import get_new_stations
+
 
 st.set_page_config(page_title='Interesses',layout='wide')
 

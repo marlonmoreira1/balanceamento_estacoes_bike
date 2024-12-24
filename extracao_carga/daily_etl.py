@@ -114,23 +114,23 @@ def main():
     
     conn = conectar_azure_sql()
     
-    df_information = collect_data("station_information")
+    # df_information = collect_data("station_information")
 
-    df_information = df_information[['new_id', 'station_id', 'name', 'physical_configuration', 'lat', 'lon', 'address', 'capacity', 'groups']]
+    # df_information = df_information[['new_id', 'station_id', 'name', 'physical_configuration', 'lat', 'lon', 'address', 'capacity', 'groups']]
 
-    df_information['groups'] = df_information.apply(get_regions,axis=1)
+    # df_information['groups'] = df_information.apply(get_regions,axis=1)
 
-    df_status = collect_data("station_status")
+    # df_status = collect_data("station_status")
 
-    df_status = df_status[['new_id', 'num_bikes_disabled', 'num_docks_disabled', 'status','city']]    
+    # df_status = df_status[['new_id', 'num_bikes_disabled', 'num_docks_disabled', 'status','city']]    
 
-    df_information = df_information.fillna('')
+    # df_information = df_information.fillna('')
 
-    df_status = df_status.fillna('')
+    # df_status = df_status.fillna('')
 
-    carregar_no_sql(df_status,os.environ['TS'],conn)
+    # carregar_no_sql(df_status,os.environ['TS'],conn)
 
-    carregar_no_sql(df_information,os.environ['TI'],conn)    
+    # carregar_no_sql(df_information,os.environ['TI'],conn)    
 
     inserir_sql(conn,os.environ['CN'],os.environ['TN'])
 
