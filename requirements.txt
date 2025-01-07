@@ -20,4 +20,3 @@ pyodbc
 slack_bolt
 google-cloud-bigquery
 sqlalchemy
-db-types
