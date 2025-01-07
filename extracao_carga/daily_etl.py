@@ -1,142 +1,127 @@
 import os
 import pandas as pd
 from datetime import datetime, timedelta
-from io import BytesIO
 import time
-from azure.storage.blob import BlobServiceClient
+from sqlalchemy import create_engine, event
+from sqlalchemy.exc import OperationalError
 import pyodbc
+import urllib.parse
+import json
+from google.cloud import bigquery
+from google.oauth2 import service_account
 from dotenv import load_dotenv
-from collect_data import collect_data
 
 load_dotenv()
-BLOB_CONNECTION_STRING = os.environ["CONNECTION_STRING"]
-CONTAINER_NAME = os.environ["CONTAINER_NAME"]
 
+credentials_json = os.environ["GOOGLE_CREDENTIALS"]
 
-def get_regions(row):
-        if isinstance(row['groups'],list) and len(row['groups'])>0:
-            return row['groups'][0]
-        return None  
+credentials_info = json.loads(credentials_json)
 
+credentials = service_account.Credentials.from_service_account_info(credentials_info)
 
-def consolidar_e_enviar_sql(container):
-    
-    data_anterior = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    pasta_anterior = f"{data_anterior}/"  
-    
-    
-    blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
-    container_client = blob_service_client.get_container_client(container)
-    
-    
-    blobs = container_client.list_blobs(name_starts_with=pasta_anterior)
-    arquivos_parquet = [blob.name for blob in blobs if blob.name.endswith(".parquet")]    
-    
-    dataframes = []
-    for arquivo in arquivos_parquet:
-        blob_client = container_client.get_blob_client(arquivo)
-        
-        
-        stream = blob_client.download_blob().readall()
-        df = pd.read_parquet(BytesIO(stream))
-        dataframes.append(df)
-    
-    
-    if dataframes:
-        df_final = pd.concat(dataframes, ignore_index=True)
-    else:
-        df_final = pd.DataFrame()  
-    
-    return df_final
-    
+client = bigquery.Client(credentials=credentials, project=credentials_info['project_id'])
 
-
-def inserir_sql(conn,container,table_name):
-    df = consolidar_e_enviar_sql(container)
-    
-    df = df.dropna(subset=['last_reported'])
-
-    cursor = conn.cursor()
-
-    colunas_formatadas = ', '.join([f'[{col}]' for col in df.columns])    
-    placeholders = ', '.join(['?'] * len(df.columns))    
-    
-    insert_query = f"INSERT INTO [dbo].[{table_name}] ({colunas_formatadas}) VALUES ({placeholders})"
-    cursor.executemany(insert_query, df.values.tolist())
-    conn.commit()
+def consultar_dados_bigquery(consulta):
+    query = consulta
+    df = client.query(query).to_dataframe()    
+    return df
+ 
 
 def conectar_azure_sql():
-    credentials = (
-    'Driver={ODBC Driver 17 for SQL Server};'
-    f'Server={os.environ["SERVER"]};'
-    f'Database={os.environ["DATABASE"]};'
-    f'Uid={os.environ["UID"]};'
-    f'Pwd={os.environ["PWD"]}'
-)
 
-    max_retries = 3
+    params = urllib.parse.quote_plus(
+        'DRIVER={ODBC Driver 17 for SQL Server};'
+        f'SERVER={os.environ["SERVER"]};'
+        f'DATABASE={os.environ["DATABASE"]};'
+        f'UID={os.environ["UID"]};'
+        f'PWD={os.environ["PWD"]}'                
+    )
+    
+    connection_string = f'mssql+pyodbc:///?odbc_connect={params}'
+
+    max_retries = 10
     attempt = 0
-    connected = False
+    engine = None
 
-    while attempt < max_retries and not connected:
+    while attempt < max_retries:
         try:
-            conn = pyodbc.connect(credentials,timeout=20)		
-            connected = True
-        except pyodbc.Error as e:
-            print(f"Connection attempt {attempt + 1} failed: {e}")
+            engine = create_engine(connection_string, fast_executemany=True)           
+            
+            @event.listens_for(engine, "before_cursor_execute")
+            def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
+                if executemany:
+                    cursor.fast_executemany = True            
+            
+            return engine
+        
+        except OperationalError as e:
+            print(f"Tentativa {attempt + 1} falhou: {e}")
             attempt += 1
             time.sleep(10)
     
-    return conn
+    if not engine:
+        raise Exception("Falha ao conectar ao Azure SQL Server após várias tentativas.")  
 
-def carregar_no_sql(df, table_name, conn):    
-    cursor = conn.cursor()
 
+def main():    
     
-    colunas_formatadas = ', '.join([f'[{col}]' for col in df.columns])
-    placeholders = ', '.join(['?'] * len(df.columns))
+    engine = conectar_azure_sql()
     
     
-    insert_query = f"INSERT INTO [dbo].[{table_name}] ({colunas_formatadas}) VALUES ({placeholders})"
+    dados_status = consultar_dados_bigquery("""    
+    SELECT
+    *
+    FROM
+    `bike-balancing.bike_data.status`
+    WHERE
+    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    """)
 
+    dados_par = consultar_dados_bigquery("""    
+    SELECT
+    *
+    FROM
+    `bike-balancing.bike_data.par`
+    WHERE
+    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    """)
+
+    dados_alerta = consultar_dados_bigquery("""    
+    SELECT
+    *
+    FROM
+    `bike-balancing.bike_data.alerta`
+    WHERE
+    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    """)
+
+
+    dados_status.to_sql(
+        name='BikeStations',  
+        con=engine,
+        index=False,
+        if_exists="append",  
+        schema="dbo"  
+    )
+
+
+    dados_par.to_sql(
+        name='ParStations',  
+        con=engine,
+        index=False,
+        if_exists="append",  
+        schema="dbo"  
+    )
+
+    dados_alerta.to_sql(
+        name='Alerts',  
+        con=engine,
+        index=False,
+        if_exists="append",  
+        schema="dbo"  
+    )
     
-    cursor.execute(f"DELETE FROM [dbo].[{table_name}]")
-    print(f"Dados apagados da tabela {table_name}.")
-
     
-    cursor.executemany(insert_query, df.values.tolist())
-    conn.commit()
-    print(f"Dados inseridos na tabela {table_name} com sucesso.")   
-    
-
-
-def main():
-    
-    conn = conectar_azure_sql()
-    
-    # df_information = collect_data("station_information")
-
-    # df_information = df_information[['new_id', 'station_id', 'name', 'physical_configuration', 'lat', 'lon', 'address', 'capacity', 'groups']]
-
-    # df_information['groups'] = df_information.apply(get_regions,axis=1)
-
-    # df_status = collect_data("station_status")
-
-    # df_status = df_status[['new_id', 'num_bikes_disabled', 'num_docks_disabled', 'status','city']]    
-
-    # df_information = df_information.fillna('')
-
-    # df_status = df_status.fillna('')
-
-    # carregar_no_sql(df_status,os.environ['TS'],conn)
-
-    # carregar_no_sql(df_information,os.environ['TI'],conn)    
-
-    inserir_sql(conn,os.environ['CN'],os.environ['TN'])
-
-    inserir_sql(conn,CONTAINER_NAME,os.environ['TSR'])    
-    
-    conn.close()
 
 if __name__ == '__main__':
     main()
