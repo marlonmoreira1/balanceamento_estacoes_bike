@@ -29,6 +29,10 @@ jobs:
         SERVER: ${{ secrets.SERVER }}
         DATABASE: ${{ secrets.DATABASE }}
         UID: ${{ secrets.UID }}
-        PWD: ${{ secrets.PWD }}                     
+        PWD: ${{ secrets.PWD }}
+        PROJECT_ID: ${{ secrets.PROJECT_ID }}
+        TABLE_ID: ${{ secrets.TABLE_ID }}
+        TABLE_ID_PAR: ${{ secrets.TABLE_ID_PAR }}
+        TABLE_ID_ALERTA: ${{ secrets.TABLE_ID_ALERTA }}                     
       run: |
         python extracao_carga/status.py

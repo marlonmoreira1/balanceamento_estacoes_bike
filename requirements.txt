@@ -6,17 +6,11 @@ scipy
 networkx  
 geopy
 streamlit
-plotly
-plotly-express
 streamlit_folium
 streamlit-autorefresh
 slack_sdk
-selenium
-webdriver-manager
 polyline
 tabulate
-azure-storage-blob
 pyodbc
-slack_bolt
 google-cloud-bigquery
 sqlalchemy
