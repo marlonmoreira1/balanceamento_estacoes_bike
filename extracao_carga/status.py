@@ -314,7 +314,7 @@ def main():
     FROM
     bike-balancing.bike_data.alerta
     WHERE
-    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 12 MINUTE)
+    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 30 MINUTE)
     AND new_id IN (
         SELECT new_id
         FROM bike-balancing.bike_data.alerta
