@@ -54,8 +54,8 @@ def conectar_azure_sql():
             
             return engine
         
-        except OperationalError as e:
-            print(f"Tentativa {attempt + 1} falhou: {e}")
+        except pyodbc.Error as e:
+            print(f"Connection attempt {attempt + 1} failed: {e}")
             attempt += 1
             time.sleep(10)
     
