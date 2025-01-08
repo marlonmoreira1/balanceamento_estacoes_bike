@@ -1,4 +1,4 @@
-name: Daily Data Integration
+name: Carga dos Eventos
 
 on:
   schedule:
