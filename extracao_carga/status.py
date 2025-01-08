@@ -12,7 +12,7 @@ from slack_sdk import WebClient
 from tabulate import tabulate
 from google.cloud import bigquery
 from google.oauth2 import service_account
-from dotenv import load_dotenv
+
 
 urls = {
     "Salvador": {        
@@ -159,9 +159,7 @@ def send_alert(df_vazia):
 
         get_message(message)
 
-def main():
-
-    load_dotenv()
+def main():    
 
     status_data = collect_data("station_status")
 
@@ -246,7 +244,6 @@ def main():
             table.num_rows, len(table.schema), status_table_id
         )
     )
-
 
 
     par_table_id = os.environ["TABLE_ID_PAR"]
