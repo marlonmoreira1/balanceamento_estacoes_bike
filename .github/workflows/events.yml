@@ -34,6 +34,7 @@ jobs:
         PROJECT_ID: ${{ secrets.PROJECT_ID }}
         TABLE_ID: ${{ secrets.TABLE_ID }}
         TABLE_ID_PAR: ${{ secrets.TABLE_ID_PAR }}
-        TABLE_ID_ALERTA: ${{ secrets.TABLE_ID_ALERTA }}                     
+        TABLE_ID_ALERTA: ${{ secrets.TABLE_ID_ALERTA }}
+        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}                     
       run: |
         python extracao_carga/status.py

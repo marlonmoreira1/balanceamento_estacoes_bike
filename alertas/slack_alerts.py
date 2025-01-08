@@ -16,23 +16,17 @@ def get_message(message):
     )
 
 
-def send_alert(df_vazia):
-
-    if df_vazia.empty:
-        return
+def send_alert(df_vazia):    
     
-    timestamp = datetime.datetime.now()
 
     vazias = df_vazia.groupby('city')[['name','groups','capacity']]    
 
     for cidade, estacoes in vazias:
         estacoes_formatado = tabulate(estacoes, headers=['name','groups','capacity'],tablefmt='grid',showindex=False)
-        message = f"Na {cidade.upper()},e hora = {timestamp}; estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
+        message = f"Na {cidade.upper()} estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
 
-        if len(vazias)>0 and len(st.session_state.alerts)>0:
-            time.sleep(2)
-            get_message(message)
-            time.sleep(2)
+        get_message(message)
+            
 
         
           
