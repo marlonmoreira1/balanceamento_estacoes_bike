@@ -1,0 +1,8 @@
+pandas
+polars
+requests
+slack_sdk
+tabulate
+pyodbc
+google-cloud-bigquery
+sqlalchemy
