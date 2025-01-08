@@ -45,7 +45,7 @@ def conectar_azure_sql():
 
     while attempt < max_retries:
         try:
-            engine = create_engine(connection_string, fast_executemany=True)           
+            engine = create_engine(connection_string, fast_executemany=True, connect_args={"timeout": 30})           
             
             @event.listens_for(engine, "before_cursor_execute")
             def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
