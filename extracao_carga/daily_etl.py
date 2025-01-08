@@ -9,9 +9,7 @@ import urllib.parse
 import json
 from google.cloud import bigquery
 from google.oauth2 import service_account
-from dotenv import load_dotenv
 
-load_dotenv()
 
 credentials_json = os.environ["GOOGLE_CREDENTIALS"]
 
