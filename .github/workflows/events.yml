@@ -2,12 +2,12 @@ name: Carga dos Eventos
 
 on:
   schedule:
-    - cron: '*/15 * * * *' 
+    - cron: '*/5 * * * *' 
   workflow_dispatch:
 
 jobs:
   collect-and-load-data:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
