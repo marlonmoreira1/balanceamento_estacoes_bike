@@ -58,7 +58,7 @@ def optimize_complete_route_with_map(df_stations,df):
                 
                 
                 if type1 == 'vazia' and type2 == 'vazia':
-                    distance *= 5
+                    distance *= 6
                 
                 G.add_edge(station1, station2, distance=distance)        
     

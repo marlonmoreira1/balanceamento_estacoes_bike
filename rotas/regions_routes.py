@@ -70,7 +70,7 @@ def optimize_routes_by_region(df_stations,df):
                     if station1 != station2:
                         distance = geodesic(coords1, coords2).km
                         if station_types[station1] == 'vazia' and station_types[station2] == 'vazia':
-                            distance *= 13
+                            distance *= 15
                         G.add_edge(station1, station2, distance=distance)                   
             
         optimized_path = nx.algorithms.approximation.traveling_salesman.christofides(G, weight="distance")
