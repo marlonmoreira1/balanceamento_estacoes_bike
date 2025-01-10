@@ -314,10 +314,13 @@ def main():
     FROM
     bike-balancing.bike_data.alerta
     WHERE
-    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 30 MINUTE)
-    AND new_id IN (
+    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
+    AND
+    new_id IN (
         SELECT new_id
         FROM bike-balancing.bike_data.alerta
+        WHERE
+    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 50 MINUTE)             
         GROUP BY new_id
         HAVING COUNT(new_id) = 1
         )
