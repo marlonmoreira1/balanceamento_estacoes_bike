@@ -1,56 +1,34 @@
 import streamlit as st
-import requests
+from google.cloud import bigquery
+from google.oauth2 import service_account
 import pandas as pd
 from datetime import datetime, timedelta
 import time
-
-urls = {
-    "Salvador": {        
-        "station_information": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-        "station_status": "https://salvador.publicbikesystem.net/customer/gbfs/v2/en/station_status"
-    },
-    "Recife": {        
-        "station_information": "https://rec.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-        "station_status": "https://rec.publicbikesystem.net/customer/gbfs/v2/en/station_status"
-    },
-    "São Paulo": {        
-        "station_information": "https://saopaulo.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-        "station_status": "https://saopaulo.publicbikesystem.net/customer/gbfs/v2/en/station_status"
-    },
-    "Rio de Janeiro": {        
-        "station_information": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-        "station_status": "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v2/en/station_status"
-    },
-    "Porto Alegre": {        
-        "station_information": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-        "station_status": "https://poa.publicbikesystem.net/customer/gbfs/v2/en/station_status"
-    }
-}
+import os
 
 
-def fetch_data(url):
-    response = requests.get(url)    
-    data = response.json().get("data")        
-    if isinstance(data, dict) and len(data) == 1:
-        data_key = list(data.keys())[0]
-        return pd.DataFrame(data[data_key])
-    else:
-        return pd.DataFrame([data])
-    return pd.DataFrame()
+credentials_info = {
+  "type": st.secrets["TYPE"],
+  "project_id": st.secrets["PROJECT_ID"],
+  "private_key_id": st.secrets["PRIVATE_KEY_ID"],
+  "private_key": st.secrets["PRIVATE_KEY"],
+  "client_email": st.secrets["CLIENT_EMAIL"],
+  "client_id": st.secrets["CLIENT_ID"],
+  "auth_uri": st.secrets["AUTH_URI"],
+  "token_uri": st.secrets["TOKEN_URI"],
+  "auth_provider_x509_cert_url": st.secrets["AUTH_PROVIDER_X509_CERT_URL"],
+  "client_x509_cert_url": st.secrets["CLIENT_X509_CERT_URL"],
+  "universe_domain": st.secrets["UNIVERSE_DOMAIN"]
+}    
+
+credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
+client = bigquery.Client(credentials=credentials, project=credentials_info['project_id'])
 
 
-@st.cache_data(ttl=300,show_spinner=False)
-def collect_data(type):    
-    
-    station_list = []
-    
-    for city, city_urls in urls.items():
 
-        station_status = fetch_data(city_urls[type])
-        station_status['city'] = city
-        station_status['new_id'] = city + station_status['station_id']
-        station_list.append(station_status)    
-    
-    all_station = pd.concat(station_list, ignore_index=True)    
-    
-    return  all_station
+@st.cache_data(ttl=600,show_spinner=False)
+def consultar_dados_bigquery(consulta):
+        query = consulta
+        df = client.query(query).to_dataframe()    
+        return df

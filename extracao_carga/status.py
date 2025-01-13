@@ -12,6 +12,7 @@ from slack_sdk import WebClient
 from tabulate import tabulate
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from dotenv import load_dotenv
 
 
 urls = {
@@ -159,7 +160,9 @@ def send_alert(df_vazia):
 
         get_message(message)
 
-def main():    
+def main():
+
+    load_dotenv()    
 
     status_data = collect_data("station_status")
 
@@ -206,7 +209,7 @@ def main():
 
     credentials_json = os.environ["GOOGLE_CREDENTIALS"]
 
-    credentials_info = json.loads(credentials_json)
+    credentials_info = json.loads(credentials_json)    
 
     credentials = service_account.Credentials.from_service_account_info(credentials_info)
 
@@ -223,9 +226,23 @@ def main():
         
         schema = [
         bigquery.SchemaField("new_id", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("station_id", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("num_bikes_available", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("num_bikes_disabled", "INTEGER", mode="NULLABLE"),
         bigquery.SchemaField("num_docks_available", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("num_docks_disabled", "INTEGER", mode="NULLABLE"),
         bigquery.SchemaField("last_reported", "DATETIME", mode="NULLABLE"),
+        bigquery.SchemaField("status", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("city", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("name", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("physical_configuration", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("lat", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("lon", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("altitude", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("address", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("address", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("capacity", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("groups", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("station_type_situation", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("data", "DATE", mode="NULLABLE")       
     ],
@@ -234,7 +251,7 @@ def main():
     )
 
     job_status = client.load_table_from_dataframe(
-        status, status_table_id, job_config=status_job_config
+        df_merged, status_table_id, job_config=status_job_config
     )  
     job_status.result()  
 
@@ -315,13 +332,16 @@ def main():
     bike-balancing.bike_data.alerta
     WHERE
     last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
-    AND
-    new_id IN (
-        SELECT new_id
-        FROM bike-balancing.bike_data.alerta
+    AND capacity > 19
+    AND new_id IN (
+        SELECT
+        new_id
+        FROM
+        bike-balancing.bike_data.alerta
         WHERE
-    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 50 MINUTE)             
-        GROUP BY new_id
+        last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 120 MINUTE)             
+        GROUP BY
+        new_id
         HAVING COUNT(new_id) = 1
         )
     """)

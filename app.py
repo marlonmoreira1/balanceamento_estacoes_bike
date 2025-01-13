@@ -10,12 +10,12 @@ from rotas.regions_routes import optimize_routes_by_region, show_map_static_regi
 from rotas.main_map import show_map_static, create_station_map
 from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
-from extracao_carga.collect_data import collect_data
+from extracao_carga.collect_data import consultar_dados_bigquery
 from cards import create_card
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
-st_autorefresh(interval=300000, key="refresh_key")
+st_autorefresh(interval=600000, key="refresh_key")
 
 st.markdown("""
         <style>
@@ -30,31 +30,21 @@ st.markdown("""
 
 st.title("Equilibike 🚴‍♀️")
 
-all_station_status = collect_data("station_status")
-all_station_information = collect_data("station_information")
+df_merged = consultar_dados_bigquery("""    
+    SELECT
+    *
+    FROM
+    `bike-balancing.bike_data.status`
+    QUALIFY 
+    ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
+    """) 
 
-all_station_status['last_reported'] = pd.to_datetime(all_station_status['last_reported'], unit='s')
-
-
-selected_columns_information = all_station_information[['new_id', 'name', 'physical_configuration', 'lat', 'lon', 'altitude', 'address', 'capacity', 'is_charging_station', 'groups']]
-selected_columns_status = all_station_status[['new_id', 'station_id', 'num_bikes_available', 'num_bikes_disabled', 'num_docks_available', 'num_docks_disabled', 'last_reported', 'status','city']]
-
-
-df_merged = pd.merge(
-    selected_columns_status,
-    selected_columns_information,
-    on='new_id',
-    how='left'
+city = st.selectbox(
+    "Cidade: ",
+    df_merged['city'].unique(),
+    index=list(df_merged['city'].unique()).index("Salvador"),
+    key=1
 )
-
-def get_regions(row):
-        if isinstance(row['groups'],list) and len(row['groups'])>0:
-            return row['groups'][0]
-        return None  
-
-df_merged['groups'] = df_merged.apply(get_regions,axis=1) 
-
-city = st.selectbox("Cidade: ",df_merged['city'].unique(),key=1)
 
 df_filtered = df_merged[df_merged['city']==city]
 
