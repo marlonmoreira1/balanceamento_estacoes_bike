@@ -14,3 +14,4 @@ tabulate
 pyodbc
 google-cloud-bigquery
 sqlalchemy
+db-dtypes
