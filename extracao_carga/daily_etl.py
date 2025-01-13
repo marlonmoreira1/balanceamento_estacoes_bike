@@ -68,7 +68,12 @@ def main():
     
     dados_status = consultar_dados_bigquery("""    
     SELECT
-    *
+    new_id,
+    num_bikes_available,
+    num_docks_available,
+    last_reported,
+    station_type_situation,
+    data
     FROM
     `bike-balancing.bike_data.status`
     WHERE
