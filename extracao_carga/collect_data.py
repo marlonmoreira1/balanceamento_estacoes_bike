@@ -5,20 +5,22 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 credentials_info = {
-  "type": st.secrets["TYPE"],
-  "project_id": st.secrets["PROJECT_ID"],
-  "private_key_id": st.secrets["PRIVATE_KEY_ID"],
-  "private_key": st.secrets["PRIVATE_KEY"],
-  "client_email": st.secrets["CLIENT_EMAIL"],
-  "client_id": st.secrets["CLIENT_ID"],
-  "auth_uri": st.secrets["AUTH_URI"],
-  "token_uri": st.secrets["TOKEN_URI"],
-  "auth_provider_x509_cert_url": st.secrets["AUTH_PROVIDER_X509_CERT_URL"],
-  "client_x509_cert_url": st.secrets["CLIENT_X509_CERT_URL"],
-  "universe_domain": st.secrets["UNIVERSE_DOMAIN"]
+  "type": os.environ["TYPE"],
+  "project_id": os.environ["PROJECT_ID"],
+  "private_key_id": os.environ["PRIVATE_KEY_ID"],
+  "private_key": os.environ["PRIVATE_KEY"],
+  "client_email": os.environ["CLIENT_EMAIL"],
+  "client_id": os.environ["CLIENT_ID"],
+  "auth_uri": os.environ["AUTH_URI"],
+  "token_uri": os.environ["TOKEN_URI"],
+  "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
+  "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"],
+  "universe_domain": os.environ["UNIVERSE_DOMAIN"]
 }    
 
 credentials = service_account.Credentials.from_service_account_info(credentials_info)

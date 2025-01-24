@@ -114,6 +114,13 @@ def optimize_complete_route_with_map(df_stations,df):
             icon=folium.Icon(color=icon_color, icon="info-sign")
         ).add_to(m)
 
+        folium.Marker(
+            location=start_coords,
+            icon=folium.DivIcon(
+                html=f'<div style="font-size: 16px; color: black; font-weight: bold; text-align: center;">{i+1}</div>'
+            )
+        ).add_to(m)
+
     last_station = optimized_path[-2]    
     last_coords = stations_df.filter(pl.col('station') == last_station).select(['lat', 'lon']).row(0)
     last_station_type = stations_df.filter(pl.col('station') == last_station).select('type').item()

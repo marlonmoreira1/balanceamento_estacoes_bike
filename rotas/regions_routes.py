@@ -114,6 +114,13 @@ def optimize_routes_by_region(df_stations,df):
                 icon=folium.Icon(color=icon_color, icon="info-sign")
             ).add_to(feature_groups[region])
 
+            folium.Marker(
+                location=start_coords,
+                icon=folium.DivIcon(
+                    html=f'<div style="font-size: 16px; color: black; font-weight: bold; text-align: center;">{i+1}</div>'
+                )
+            ).add_to(feature_groups[region])
+
         last_station = optimized_path[-2]
         
         last_coords = all_stations[last_station]

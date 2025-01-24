@@ -49,10 +49,18 @@ def create_station_map(df_stations: pd.DataFrame) -> folium.Map:
 
     
     for _, row in df_stations.iterrows():
+
+        popup_text = f"""
+            <div style="font-family: Arial; padding: 5px;">
+                <h4 style="margin: 0;">🚲 {row['name']}</h4>                
+                <p style="margin: 5px 0;">Disponível/Capacidade: {row['num_bikes_available']}/{row['capacity']}</p>                                             
+            </div>
+        """
+
         if pd.notnull(row['lat']) and pd.notnull(row['lon']):
             folium.Marker(
                 location=[row['lat'], row['lon']],
-                popup=row['name'],
+                popup=popup_text,
                 icon=folium.Icon(color=station_colors.get(row['station_type_situation'], 'gray'))
             ).add_to(m)
             

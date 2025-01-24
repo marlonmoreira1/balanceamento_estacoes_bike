@@ -84,6 +84,8 @@ df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
 
 route_closer = df_filter.groupby('station_id').head(2)
 
+route_closer = route_closer.sort_values(by='num_bikes_available', ascending=False)
+
 st.header("Status")
 
 status_count = df_filtered["station_type_situation"].value_counts()

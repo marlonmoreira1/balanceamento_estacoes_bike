@@ -9,7 +9,7 @@ def create_marker_text_and_icon(station, num_bike, capacity, station_type):
             <div style="font-family: Arial; padding: 5px;">
                 <h4 style="margin: 0;">🔋 {station}</h4>
                 <p style="margin: 5px 0;">Estação Doadora</p>
-                <p style="margin: 5px 0;">Disponibilidade/Capacidade: {num_bike}/{capacity}</p>                                             
+                <p style="margin: 5px 0;">Disponível/Capacidade: {num_bike}/{capacity}</p>                                             
             </div>
         """
     else:
@@ -18,7 +18,7 @@ def create_marker_text_and_icon(station, num_bike, capacity, station_type):
             <div style="font-family: Arial; padding: 5px;">
                 <h4 style="margin: 0;">⚡ {station}</h4>
                 <p style="margin: 5px 0;">Estação Vazia</p>
-                <p style="margin: 5px 0;">Disponibilidade/Capacidade: {num_bike}/{capacity}</p>                                                
+                <p style="margin: 5px 0;">Disponível/Capacidade: {num_bike}/{capacity}</p>                                                
             </div>
         """
     return popup_text, icon_color
