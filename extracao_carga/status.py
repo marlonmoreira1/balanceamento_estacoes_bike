@@ -326,24 +326,41 @@ def main():
 
 
     dados_alerta = consultar_dados_bigquery("""    
-    SELECT 
-    *
-    FROM
-    bike-balancing.bike_data.alerta
-    WHERE
-    last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
-    AND capacity > 19
-    AND new_id IN (
-        SELECT
-        new_id
-        FROM
-        bike-balancing.bike_data.alerta
-        WHERE
-        last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 120 MINUTE)             
-        GROUP BY
-        new_id
-        HAVING COUNT(new_id) = 1
-        )
+    WITH Controle_Alerta AS (
+       SELECT 
+       new_id
+       FROM 
+       bike-balancing.bike_data.alerta 
+       WHERE 
+       last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 20 MINUTE)
+       AND new_id IN (
+              SELECT 
+              new_id              
+              FROM 
+              bike-balancing.bike_data.alerta
+              WHERE 
+              last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 200 MINUTE)
+              GROUP BY 
+              new_id
+              HAVING 
+              COUNT(new_id) = 20
+       )
+       GROUP BY 
+       new_id
+       HAVING 
+       COUNT(new_id) = 1
+)
+
+SELECT
+a.*
+FROM
+bike-balancing.bike_data.alerta a
+JOIN
+Controle_Alerta c
+ON 
+a.new_id = c.new_id
+WHERE 
+a.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE);
     """)
 
     dados_alerta['city'] = dados_alerta['new_id'].str.extract(r'([^\d]+)')
