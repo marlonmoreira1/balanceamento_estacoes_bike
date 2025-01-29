@@ -18,7 +18,7 @@ from rotas.cores_rotas import get_route, generate_distinct_colors
 from calculate_routes.distance_matrix import get_distance_matrix
 from rotas.main_map import get_map_html
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(ttl=600,show_spinner=False)
 def optimize_routes_by_region(df_stations,df):
     """
     Otimiza rotas para cada região, criando rotas separadas para cada grupo de estações.
@@ -154,7 +154,7 @@ def optimize_routes_by_region(df_stations,df):
 
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(ttl=600,show_spinner=False)
 def get_cached_map_region_route_html(mapa):
     return mapa
 
