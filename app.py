@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import time
 import random
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 from rotas.one_route import optimize_complete_route_with_map, show_map_static_one_route
 from rotas.regions_routes import optimize_routes_by_region, show_map_static_region_route
 from rotas.main_map import show_map_static, create_station_map
@@ -14,6 +15,7 @@ from cards import create_card
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
+st_autorefresh(interval=600000, key="refresh_key")
 
 st.markdown("""
         <style>
