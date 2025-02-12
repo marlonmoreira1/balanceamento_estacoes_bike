@@ -160,7 +160,8 @@ def send_alert(df_vazia):
 
         get_message(message)
 
-def main():
+@functions_framework.http
+def main(request):
 
     load_dotenv()    
 
@@ -331,24 +332,34 @@ def main():
        new_id
        FROM 
        bike-balancing.bike_data.alerta 
-       WHERE 
-       last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 20 MINUTE)
+       WHERE
+       last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 260 MINUTE)
        AND new_id IN (
               SELECT 
               new_id              
               FROM 
               bike-balancing.bike_data.alerta
               WHERE 
-              last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 200 MINUTE)
+              last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 250 MINUTE)
               GROUP BY 
               new_id
               HAVING 
-              COUNT(new_id) = 20
+              COUNT(new_id) = 25
        )
        GROUP BY 
        new_id
        HAVING 
-       COUNT(new_id) = 1
+       COUNT(new_id) = 25
+),
+
+Contagem_Linhas AS (
+       SELECT 
+       *,
+       ROW_NUMBER() OVER (PARTITION BY name ORDER BY last_reported DESC) AS ranking     
+       FROM 
+       bike-balancing.bike_data.alerta
+       WHERE
+       last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 260 MINUTE)
 )
 
 SELECT
@@ -359,13 +370,19 @@ JOIN
 Controle_Alerta c
 ON 
 a.new_id = c.new_id
+JOIN 
+Contagem_Linhas l
+ON
+a.new_id = l.new_id
 WHERE 
-a.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE);
+a.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
+AND l.ranking = 1;
     """)
 
     dados_alerta['city'] = dados_alerta['new_id'].str.extract(r'([^\d]+)')
 
     send_alert(dados_alerta)
+    return 'Processo completo!'
 
 if __name__ == "__main__":
     main()
