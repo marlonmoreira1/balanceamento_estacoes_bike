@@ -106,6 +106,7 @@ def get_par(doadoras, vazias):
                 'lon': row['lon'],            
                 'groups': row['groups'],
                 'data': row['data'],
+                'last_reported': row['last_reported'],
                 'nearby_new_id': nearby['new_id'],
                 'nearby_station_id': nearby['station_id'],
                 'distance': nearest_distances[j],
