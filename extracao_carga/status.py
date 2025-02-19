@@ -203,7 +203,7 @@ def main(request):
     alerta = vazias[['new_id', 'num_bikes_available',
 'station_type_situation','last_reported', 'name', 'groups', 'capacity', 'data']]
 
-    par = vazia_doadora_par[['new_id', 'station_id','name','nearby_new_id', 'nearby_station_id','name_nearby','data']]
+    par = vazia_doadora_par[['new_id', 'station_id','name','nearby_new_id', 'nearby_station_id','name_nearby','last_reported','data']]
 
     status = df_merged[[
     'new_id', 
@@ -294,6 +294,7 @@ def main(request):
         bigquery.SchemaField("nearby_new_id", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("nearby_station_id", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("name_nearby", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("last_reported", "DATETIME", mode="NULLABLE"),
         bigquery.SchemaField("data", "DATE", mode="NULLABLE")       
     ],
         
