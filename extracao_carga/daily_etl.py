@@ -77,7 +77,7 @@ def main():
     FROM
     `bike-balancing.bike_data.status`
     WHERE
-    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    data = '2025-02-19'
     """)
 
     dados_par = consultar_dados_bigquery("""    
@@ -86,7 +86,7 @@ def main():
     FROM
     `bike-balancing.bike_data.par`
     WHERE
-    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    data = '2025-02-19'
     """)
 
     dados_alerta = consultar_dados_bigquery("""    
@@ -95,7 +95,7 @@ def main():
     FROM
     `bike-balancing.bike_data.alerta`
     WHERE
-    data = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+    data = '2025-02-19'
     """)
 
 

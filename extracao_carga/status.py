@@ -264,6 +264,47 @@ def main(request):
     )
 
 
+
+    status_latest_table_id = "bike-balancing.bike_data.status_latest"
+
+    status_latest_job_config = bigquery.LoadJobConfig(  
+        schema = [
+            bigquery.SchemaField("new_id", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("station_id", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("num_bikes_available", "INTEGER", mode="NULLABLE"),
+            bigquery.SchemaField("num_bikes_disabled", "INTEGER", mode="NULLABLE"),
+            bigquery.SchemaField("num_docks_available", "INTEGER", mode="NULLABLE"),
+            bigquery.SchemaField("num_docks_disabled", "INTEGER", mode="NULLABLE"),
+            bigquery.SchemaField("last_reported", "DATETIME", mode="NULLABLE"),
+            bigquery.SchemaField("status", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("city", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("name", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("physical_configuration", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("lat", "FLOAT", mode="NULLABLE"),
+            bigquery.SchemaField("lon", "FLOAT", mode="NULLABLE"),
+            bigquery.SchemaField("altitude", "FLOAT", mode="NULLABLE"),
+            bigquery.SchemaField("address", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("capacity", "INTEGER", mode="NULLABLE"),
+            bigquery.SchemaField("groups", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("station_type_situation", "STRING", mode="NULLABLE"),
+            bigquery.SchemaField("data", "DATE", mode="NULLABLE")       
+        ],
+        write_disposition="WRITE_TRUNCATE"  
+    )
+
+    job_status_latest = client.load_table_from_dataframe(
+        df_merged, status_latest_table_id, job_config=status_latest_job_config
+    )  
+    job_status_latest.result()  
+
+    table_latest = client.get_table(status_latest_table_id)  
+    print(
+        "Loaded {} rows and {} columns to {}".format(
+            table_latest.num_rows, len(table_latest.schema), status_latest_table_id
+        )
+    )
+
+
     par_table_id = os.environ["TABLE_ID_PAR"]
 
     par_job_config = bigquery.LoadJobConfig(  
