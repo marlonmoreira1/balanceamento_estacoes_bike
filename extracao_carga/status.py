@@ -205,8 +205,28 @@ def main(request):
 
     par = vazia_doadora_par[['new_id', 'station_id','name','nearby_new_id', 'nearby_station_id','name_nearby','data']]
 
-    status = df_merged[['new_id', 'num_bikes_available', 'num_docks_available',
-'last_reported','station_type_situation','data']]
+    status = df_merged[[
+    'new_id', 
+    'station_id',  
+    'num_bikes_available',
+    'num_bikes_disabled',  
+    'num_docks_available',
+    'num_docks_disabled',  
+    'last_reported',
+    'status',  
+    'city',  
+    'name',  
+    'physical_configuration',  
+    'lat', 
+    'lon', 
+    'altitude', 
+    'address',  
+    'capacity', 
+    'groups', 
+    'station_type_situation',
+    'data'  
+]]
+
 
     credentials_json = os.environ["GOOGLE_CREDENTIALS"]
 
@@ -240,8 +260,7 @@ def main(request):
         bigquery.SchemaField("lat", "FLOAT", mode="NULLABLE"),
         bigquery.SchemaField("lon", "FLOAT", mode="NULLABLE"),
         bigquery.SchemaField("altitude", "FLOAT", mode="NULLABLE"),
-        bigquery.SchemaField("address", "STRING", mode="NULLABLE"),
-        bigquery.SchemaField("address", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("address", "STRING", mode="NULLABLE"),        
         bigquery.SchemaField("capacity", "INTEGER", mode="NULLABLE"),
         bigquery.SchemaField("groups", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("station_type_situation", "STRING", mode="NULLABLE"),
@@ -252,7 +271,7 @@ def main(request):
     )
 
     job_status = client.load_table_from_dataframe(
-        df_merged, status_table_id, job_config=status_job_config
+        status, status_table_id, job_config=status_job_config
     )  
     job_status.result()  
 
@@ -333,7 +352,7 @@ def main(request):
        FROM 
        bike-balancing.bike_data.alerta 
        WHERE
-       _PARTITIONTIME >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 4 HOUR)
+       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 4 HOUR))
        AND new_id IN (
               SELECT 
               new_id              
