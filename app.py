@@ -35,6 +35,7 @@ df_merged = consultar_dados_bigquery("""
     *
     FROM
     `bike-balancing.bike_data.status`
+    _PARTITIONTIME >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 1 HOUR)
     QUALIFY 
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
     """) 
