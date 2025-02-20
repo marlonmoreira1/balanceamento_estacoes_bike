@@ -23,7 +23,7 @@ def send_alert(df_vazia):
 
     for cidade, estacoes in vazias:
         estacoes_formatado = tabulate(estacoes, headers=['name','groups','capacity'],tablefmt='grid',showindex=False)
-        message = f"Na {cidade.upper()} estas estações estão no momento sem nenhuma bicicleta disponível:\n {estacoes_formatado}"
+        message = f"{cidade.upper()}, estas estações estão no momento sem nenhuma bicicleta disponível há 3 horas:\n {estacoes_formatado}"
 
         get_message(message)
             

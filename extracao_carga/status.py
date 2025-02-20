@@ -354,23 +354,23 @@ def main(request):
        FROM 
        bike-balancing.bike_data.alerta 
        WHERE
-       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 4 HOUR))
+       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 190 MINUTE))
        AND new_id IN (
               SELECT 
               new_id              
               FROM 
               bike-balancing.bike_data.alerta
               WHERE 
-              last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 250 MINUTE)
+              _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 180 MINUTE))
               GROUP BY 
               new_id
               HAVING 
-              COUNT(new_id) = 25
+              COUNT(new_id) = 18
        )
        GROUP BY 
        new_id
        HAVING 
-       COUNT(new_id) = 25
+       COUNT(new_id) = 18
 ),
 
 Contagem_Linhas AS (
@@ -380,23 +380,23 @@ Contagem_Linhas AS (
        FROM 
        bike-balancing.bike_data.alerta
        WHERE
-       last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 260 MINUTE)
+       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 180 MINUTE))
+       
 )
 
 SELECT
-a.*
+l.new_id,
+l.name,
+l.groups,
+l.capacity
 FROM
-bike-balancing.bike_data.alerta a
-JOIN
 Controle_Alerta c
-ON 
-a.new_id = c.new_id
 JOIN 
 Contagem_Linhas l
 ON
-a.new_id = l.new_id
-WHERE 
-a.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
+c.new_id = l.new_id
+WHERE
+l.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
 AND l.ranking = 1;
     """)
 
