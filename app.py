@@ -43,8 +43,7 @@ df_merged = consultar_dados_bigquery("""
 
 city = st.selectbox(
     "Cidade: ",
-    df_merged['city'].unique(),
-    index="Salvador",
+    df_merged['city'].unique(),    
     key=1
 )
 
