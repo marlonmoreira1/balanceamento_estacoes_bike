@@ -21,7 +21,7 @@ def get_par(doadoras, vazias):
     coords_doadoras = doadoras[['lat', 'lon']].values    
 
     tree = KDTree(coords_doadoras)
-    distancias, indices = tree.query(coords_vazias, k=2)
+    distancias, indices = tree.query(coords_vazias, k=3)
 
     resultados = []
     doadoras_pl = pl.from_pandas(doadoras)

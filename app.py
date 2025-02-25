@@ -12,6 +12,8 @@ from pares.find_par import get_par
 from calculate_routes.distance_routes import calculate_station_routes
 from extracao_carga.collect_data import consultar_dados_bigquery
 from cards import create_card
+from funcao_mapa_principal.funcao import main_visual
+
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
@@ -28,7 +30,9 @@ st.markdown("""
         </style>
         """, unsafe_allow_html=True)
 
+
 st.title("Equilibike 🚴‍♀️")
+
 
 df_merged = consultar_dados_bigquery("""    
     SELECT
@@ -77,86 +81,80 @@ vazias = df_filtered.loc[(df_filtered['num_bikes_available']<1)&\
                        (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
-vazia_doadora_par = get_par(doadora,vazias)
 
-df_filter = vazia_doadora_par[vazia_doadora_par['nearby_station_id'].isin(doadora['station_id'])]
+if vazias.shape[0] == 0:
 
-df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
+    main_visual(df_filtered,city)
 
-route_closer = df_filter.groupby('station_id').head(2)
+else:
 
-route_closer = route_closer.sort_values(by='num_bikes_available', ascending=False)
+    vazia_doadora_par = get_par(doadora,vazias)
 
-st.header("Status")
+    df_filter = vazia_doadora_par[vazia_doadora_par['nearby_station_id'].isin(doadora['station_id'])]
 
-status_count = df_filtered["station_type_situation"].value_counts()
+    df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
 
-status_colors = {
-    'doadora': 'blue',
-    'vazia': 'red',
-    'risco': 'orange',
-    'normal': 'green',
-    'indisponivel': 'gray',
-    "Outro": "#6c757d" 
-}
+    n_city = {
+        "Rio de Janeiro": 2,
+        "Salvador": 2,
+        "Porto Alegre": 3,
+        "Recife": 3,
+        "Curitiba": 2,
+        "Brasília": 2,
+        "São Paulo": 3
+    }
 
+    route_closer = df_filter.groupby('station_id').head(n_city[city])
 
-status_cols = st.columns(len(df_filtered['station_type_situation'].unique()))
+    route_closer = route_closer.sort_values(by='num_bikes_available', ascending=False)
 
-for status_col, (status, count) in zip(status_cols ,status_count.items()):
-    with status_col:
-        color = status_colors.get(status, status_colors["Outro"])
-        st.markdown(create_card(status, count, color), unsafe_allow_html=True)
+    st.header("Status")
 
-st.header(f"Mapa das Estações Completo de {city}")
+    main_visual(df_filtered,city)
 
-mapa_principal = create_station_map(df_filtered)
+    regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
 
-show_map_static(mapa_principal,filtro=city)
+    st.subheader("Métricas do Roteamento Regional")
 
-regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
+    cols = st.columns(len(regions_optimized))
+    for col, (regiao, info) in zip(cols, regions_optimized.items()):
+        with col:
+            st.metric(
+                label=f"Região {regiao}",
+                value=f"{round(info['distance_km'], 1)} km",
+                delta=f"{round(info['duration_min'], 1)} min",
+                delta_color="off"
+            )        
 
-st.subheader("Métricas do Roteamento Regional")
+    st.header(f"Mapa das Rotas por Região de {city}")
 
-cols = st.columns(len(regions_optimized))
-for col, (regiao, info) in zip(cols, regions_optimized.items()):
-    with col:
+    show_map_static_region_route(map_regions_route,filtro=city)
+
+    one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
+
+    st.subheader("Métricas do Roteamento Único")
+
+    col1, col2 = st.columns(2)
+    with col1:
         st.metric(
-            label=f"Região {regiao}",
-            value=f"{round(info['distance_km'], 1)} km",
-            delta=f"{round(info['duration_min'], 1)} min",
-            delta_color="off"
-        )        
+            label="Distância Total da Rota",
+            value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
+        )
+    with col2:
+        st.metric(
+            label="Tempo Total da Rota",
+            value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
+        )
 
-st.header(f"Mapa das Rotas por Região de {city}")
+    st.subheader("Mapa da Rota Única")
 
-show_map_static_region_route(map_regions_route,filtro=city)
+    show_map_static_one_route(map_one_route,filtro=city)
 
-one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
+    st.subheader("Detalhes da Rota Única")
 
-st.subheader("Métricas do Roteamento Único")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(
-        label="Distância Total da Rota",
-        value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
-    )
-with col2:
-    st.metric(
-        label="Tempo Total da Rota",
-        value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
-    )
-
-st.subheader("Mapa da Rota Única")
-
-show_map_static_one_route(map_one_route,filtro=city)
-
-st.subheader("Detalhes da Rota Única")
-
-with st.expander("Ver Detalhes da Rota", expanded=True):
-    for step in one_route_optmized["detailed_route"]:
-        st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
+    with st.expander("Ver Detalhes da Rota", expanded=True):
+        for step in one_route_optmized["detailed_route"]:
+            st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
 
 
 
