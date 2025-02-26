@@ -40,6 +40,7 @@ def get_par(doadoras, vazias):
                 'lat': row['lat'],
                 'lon': row['lon'],            
                 'groups': row['groups'],
+                'city': row['city'],
                 'nearby_station_id': nearby['station_id'],
                 'distance': nearest_distances[j],
                 'address_nearby': nearby['address'],
@@ -52,6 +53,9 @@ def get_par(doadoras, vazias):
                 'capacity': nearby['capacity']
             })
 
-    vazia_doadora_par = pd.DataFrame(resultados)    
+    vazia_doadora_par = pd.DataFrame(resultados)
+    if (vazia_doadora_par['city'] == 'Curitiba').all():
+        return vazia_doadora_par
+    
     vazia_doadora_par['groups'] = vazia_doadora_par.apply(lambda row: fill_group(row, vazia_doadora_par), axis=1) 
     return vazia_doadora_par
