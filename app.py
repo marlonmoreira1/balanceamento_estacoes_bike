@@ -98,10 +98,10 @@ else:
         "Rio de Janeiro": 2,
         "Salvador": 2,
         "Porto Alegre": 3,
-        "Recife": 3,
+        "Recife": 2,
         "Curitiba": 2,
         "Brasília": 2,
-        "São Paulo": 3
+        "São Paulo": 4
     }
 
     route_closer = df_filter.groupby('station_id').head(n_city[city])
