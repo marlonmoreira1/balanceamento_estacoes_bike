@@ -115,46 +115,73 @@ else:
     regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
 
     st.subheader("Métricas do Roteamento Regional")
+    if not len(regions_optimized) <= 0:
+        cols = st.columns(len(regions_optimized))
+        for col, (regiao, info) in zip(cols, regions_optimized.items()):
+            with col:
+                st.metric(
+                    label=f"Região {regiao}",
+                    value=f"{round(info['distance_km'], 1)} km",
+                    delta=f"{round(info['duration_min'], 1)} min",
+                    delta_color="off"
+                )        
 
-    cols = st.columns(len(regions_optimized))
-    for col, (regiao, info) in zip(cols, regions_optimized.items()):
-        with col:
+        st.header(f"Mapa das Rotas por Região de {city}")
+
+        show_map_static_region_route(map_regions_route,filtro=city)
+
+        one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
+
+        st.subheader("Métricas do Roteamento Único")
+
+        col1, col2 = st.columns(2)
+        with col1:
             st.metric(
-                label=f"Região {regiao}",
-                value=f"{round(info['distance_km'], 1)} km",
-                delta=f"{round(info['duration_min'], 1)} min",
-                delta_color="off"
-            )        
+                label="Distância Total da Rota",
+                value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
+            )
+        with col2:
+            st.metric(
+                label="Tempo Total da Rota",
+                value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
+            )
 
-    st.header(f"Mapa das Rotas por Região de {city}")
+        st.subheader("Mapa da Rota Única")
 
-    show_map_static_region_route(map_regions_route,filtro=city)
+        show_map_static_one_route(map_one_route,filtro=city)
 
-    one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
+        st.subheader("Detalhes da Rota Única")
 
-    st.subheader("Métricas do Roteamento Único")
+        with st.expander("Ver Detalhes da Rota", expanded=True):
+            for step in one_route_optmized["detailed_route"]:
+                st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric(
-            label="Distância Total da Rota",
-            value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
-        )
-    with col2:
-        st.metric(
-            label="Tempo Total da Rota",
-            value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
-        )
+    else:
+        one_route_optmized, map_one_route = optimize_complete_route_with_map(route_closer,df_merged)
 
-    st.subheader("Mapa da Rota Única")
+        st.subheader("Métricas do Roteamento Único")
 
-    show_map_static_one_route(map_one_route,filtro=city)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(
+                label="Distância Total da Rota",
+                value=f"{round(one_route_optmized['total_distance_km'], 1)} km"
+            )
+        with col2:
+            st.metric(
+                label="Tempo Total da Rota",
+                value=f"{round(one_route_optmized['total_duration_min'], 1)} min"
+            )
 
-    st.subheader("Detalhes da Rota Única")
+        st.subheader("Mapa da Rota Única")
 
-    with st.expander("Ver Detalhes da Rota", expanded=True):
-        for step in one_route_optmized["detailed_route"]:
-            st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
+        show_map_static_one_route(map_one_route,filtro=city)
+
+        st.subheader("Detalhes da Rota Única")
+
+        with st.expander("Ver Detalhes da Rota", expanded=True):
+            for step in one_route_optmized["detailed_route"]:
+                st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
 
 
 
