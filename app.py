@@ -74,12 +74,12 @@ df_filtered['station_type_situation'] = df_filtered.apply(station_type,axis=1)
 
 doadora = df_filtered.loc[(df_filtered['num_bikes_available']>6)&\
                         (df_filtered['status']=='IN_SERVICE'),\
-                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
+                   ['station_id','city','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
 
 vazias = df_filtered.loc[(df_filtered['num_bikes_available']<1)&\
                        (df_filtered['status']=='IN_SERVICE'),\
-                   ['station_id','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
+                   ['station_id','city','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
 
 
 if vazias.shape[0] == 0:
