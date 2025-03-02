@@ -16,7 +16,7 @@ def main_visual(df_filtered,city):
         "Outro": "#6c757d" 
     }
 
-    status_cols = st.columns(len(df_filtered['station_type_situation'].unique()))
+    status_cols = st.columns(df_filtered['station_type_situation'].nunique())
 
     for status_col, (status, count) in zip(status_cols ,status_count.items()):
         with status_col:
