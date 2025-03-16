@@ -55,6 +55,8 @@ city = st.selectbox(
 
 df_filtered = df_merged[df_merged['city']==city]
 
+df_filtered = df_filtered.dropna(subset=['lat', 'lon'])
+
 def station_type(row):
 
     if row['num_bikes_available']<1 and row['status']=='IN_SERVICE':
