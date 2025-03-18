@@ -48,11 +48,7 @@ query = """
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
 """
 
-try:
-    df_merged = consultar_dados_bigquery(query)
-except ValueError as e:    
-    time.sleep(40)
-    df_merged = consultar_dados_bigquery(query) 
+df_merged = consultar_dados_bigquery(query)
 
 city = st.selectbox(
     "Cidade: ",
