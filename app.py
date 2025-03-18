@@ -18,7 +18,7 @@ from funcao_mapa_principal.funcao import main_visual
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
-st_autorefresh(interval=600000, key="refresh_key")
+st_autorefresh(interval=540000, key="refresh_key")
 
 st.markdown("""
         <style>
@@ -35,7 +35,7 @@ st.markdown("""
 st.title("Equilibike 🚴‍♀️")
 
 
-df_merged = consultar_dados_bigquery("""    
+query = """    
     SELECT
     *
     FROM
@@ -45,7 +45,13 @@ df_merged = consultar_dados_bigquery("""
     AND (lat IS NOT NULL AND lon IS NOT NULL)
     QUALIFY 
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
-    """) 
+"""
+
+try:
+    df_merged = consultar_dados_bigquery(query)
+except ValueError as e:    
+    time.sleep(40)
+    df_merged = consultar_dados_bigquery(query) 
 
 city = st.selectbox(
     "Cidade: ",

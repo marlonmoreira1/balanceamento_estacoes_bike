@@ -25,7 +25,7 @@ credentials = service_account.Credentials.from_service_account_info(credentials_
 client = bigquery.Client(credentials=credentials, project=credentials_info['project_id'])
 
 
-@st.cache_data(ttl=550,show_spinner=False)
+@st.cache_data(ttl=600,show_spinner=False)
 def consultar_dados_bigquery(consulta):
         query = consulta
         df = client.query(query).to_dataframe()    
