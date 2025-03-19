@@ -77,9 +77,7 @@ else:
     vazia_doadora_par = get_par(doadora,vazias)
 
     df_filter = vazia_doadora_par[vazia_doadora_par['nearby_station_id'].isin(doadora['station_id'])]
-
-    df_merged['station_type_situation'] = df_merged.apply(station_type,axis=1)
-
+    
     n_city = {
         "Rio de Janeiro": 2,
         "Salvador": 2,
