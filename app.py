@@ -58,27 +58,6 @@ city = st.selectbox(
 
 df_filtered = df_merged[df_merged['city']==city]
 
-df_filtered = df_filtered.dropna(subset=['lat', 'lon'])
-
-def station_type(row):
-
-    if row['num_bikes_available']<1 and row['status']=='IN_SERVICE':
-        return 'vazia'
-
-    elif row['num_bikes_available']>6 and row['status']=='IN_SERVICE':
-        return 'doadora'
-
-    elif (row['num_bikes_available']>0 and row['num_bikes_available']<=3) and row['status']=='IN_SERVICE':
-        return 'risco'
-
-    elif row['status'] != 'IN_SERVICE':
-        return 'indisponivel'
-
-    return 'normal'
-
-
-df_filtered['station_type_situation'] = df_filtered.apply(station_type,axis=1)
-
 doadora = df_filtered.loc[(df_filtered['num_bikes_available']>6)&\
                         (df_filtered['status']=='IN_SERVICE'),\
                    ['station_id','city','num_bikes_available','name','lat','lon','address','capacity','status','groups']]
