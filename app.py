@@ -18,7 +18,7 @@ from funcao_mapa_principal.funcao import main_visual
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
-st_autorefresh(interval=530000, key="refresh_key")
+st_autorefresh(interval=600000, key="refresh_key")
 
 st.markdown("""
         <style>
@@ -48,7 +48,14 @@ query = """
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
 """
 
-df_merged = consultar_dados_bigquery(query)
+try:
+    df_merged = consultar_dados_bigquery(query)
+except ValueError as e:
+    msg = st.empty()
+    for i in range(50, 0, -1):
+        msg.write(f"Esperando a nova atualização ser finalizada! O app será carregado em {i} segundos...")
+        time.sleep(1)    
+    df_merged = consultar_dados_bigquery(query) 
 
 city = st.selectbox(
     "Cidade: ",
