@@ -18,7 +18,7 @@ from funcao_mapa_principal.funcao import main_visual
 
 st.set_page_config(page_title='BikeBalancing 🚴‍♀️',layout='wide')
 
-st_autorefresh(interval=600000, key="refresh_key")
+st_autorefresh(interval=530000, key="refresh_key")
 
 st.markdown("""
         <style>
