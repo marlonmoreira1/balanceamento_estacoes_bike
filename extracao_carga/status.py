@@ -354,23 +354,23 @@ def main(request):
        FROM 
        bike-balancing.bike_data.alerta
        WHERE
-       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 490 MINUTE))
+       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 390 MINUTE))
        AND new_id IN (
               SELECT 
               new_id              
               FROM 
               bike-balancing.bike_data.alerta
               WHERE 
-              _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 480 MINUTE))
+              _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 380 MINUTE))
               GROUP BY 
               new_id
               HAVING 
-              COUNT(new_id) = 25
+              COUNT(new_id) = 36
        )
        GROUP BY 
        new_id
        HAVING 
-       COUNT(new_id) = 25
+       COUNT(new_id) = 36
 ),
 
 Contagem_Linhas AS (
@@ -384,8 +384,8 @@ Contagem_Linhas AS (
        FROM 
        bike-balancing.bike_data.alerta
        WHERE
-       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 250 MINUTE))
-       
+       _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 380 MINUTE))
+       ORDER BY 6 DESC
 )
 
 SELECT
@@ -402,7 +402,7 @@ ON
 c.new_id = l.new_id
 WHERE
 l.last_reported >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 10 MINUTE)
-AND l.ranking = 25;
+AND l.ranking = 36;
     """)
 
     dados_alerta['city'] = dados_alerta['new_id'].str.extract(r'([^\d]+)')
