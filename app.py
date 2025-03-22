@@ -42,7 +42,6 @@ query = """
     `bike-balancing.bike_data.status`
     WHERE
     _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 100 MINUTE))    
-    AND (lat IS NOT NULL AND lon IS NOT NULL)
     QUALIFY 
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
 """
