@@ -47,7 +47,7 @@ GBFS (General Bikeshare Feed Specification), um padrão aberto usado para dispon
 
 - Linguagem: Python
 
-- Cloud: Google Cloud (Cloud Functions, Cloud Scheduler, BigQuery)
+- Cloud: Google Cloud (Cloud Functions, Cloud Scheduler, BigQuery) e Azure (Azure SQL)
 
 - Banco de Dados: BigQuery (dados temporários), Azure SQL (armazenamento histórico e permanente)
 
