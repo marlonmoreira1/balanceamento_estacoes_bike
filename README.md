@@ -39,7 +39,7 @@ GBFS (General Bikeshare Feed Specification), um padrão aberto usado para dispon
 
 - Slack → Envio de alerta caso uma estação permaneça vazia por mais de 5 horas.
 
-- Armazenamento histórico → Dados antigos são movidos diariamente do BigQuery para o Azure SQL via GitHub Actions.
+- Armazenamento histórico → Dados são movidos diariamente do BigQuery para o Azure SQL via GitHub Actions.
 
 🛠 Tecnologias Utilizadas
 
@@ -49,7 +49,7 @@ GBFS (General Bikeshare Feed Specification), um padrão aberto usado para dispon
 
 - Cloud: Google Cloud (Cloud Functions, Cloud Scheduler, BigQuery)
 
-- Banco de Dados: BigQuery (dados temporários), Azure SQL (armazenamento histórico)
+- Banco de Dados: BigQuery (dados temporários), Azure SQL (armazenamento histórico e permanente)
 
 - Otimização de Rotas: KDTree (SciPy), NetworkX, OSRM
 
