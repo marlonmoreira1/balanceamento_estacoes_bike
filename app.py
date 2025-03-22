@@ -32,7 +32,7 @@ st.markdown("""
         """, unsafe_allow_html=True)
 
 
-st.title("Equilibike 🚴‍♀️")
+st.title("Equilibici 🚴‍♀️")
 
 
 query = """    
