@@ -41,22 +41,11 @@ query = """
     FROM
     `bike-balancing.bike_data.status`
     WHERE
-    _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 100 MINUTE))
-    AND _PARTITIONTIME < TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 0 MINUTE))
+    _PARTITIONTIME >= TIMESTAMP(DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 100 MINUTE))    
     AND (lat IS NOT NULL AND lon IS NOT NULL)
     QUALIFY 
     ROW_NUMBER() OVER (PARTITION BY new_id ORDER BY last_reported DESC) = 1
 """
-
-# segundo_atual = datetime.now().second
-# minuto_atual = datetime.now().minute
-
-# if minuto_atual == 0 and segundo_atual < 45:
-#     msg = st.empty()
-#     for i in range(50, 0, -1):
-#         msg.write(f"Esperando a nova atualização ser finalizada! O app será carregado em {i} segundos...")
-#         time.sleep(1)    
-#     df_merged = consultar_dados_bigquery(query)
 
 df_merged = consultar_dados_bigquery(query)    
 
@@ -176,7 +165,6 @@ else:
         with st.expander("Ver Detalhes da Rota", expanded=True):
             for step in one_route_optmized["detailed_route"]:
                 st.write(f"🚗 {step['start_point']} ➡️ {step['end_point']}")
-
 
 
 
