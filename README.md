@@ -25,7 +25,7 @@ GBFS (General Bikeshare Feed Specification), um padrão aberto usado para dispon
 
 🔎 **Processamento dos Dados**
 
-1. KDTree (SciPy) → Identifica os pares estação vazia ↔ estação cheia mais próximos com base na distância geográfica.
+1. KDTree (SciPy) → Identifica os pares estação vazia ↔ estação doadora mais próximos com base na distância geográfica.
 
 2. NetworkX (nx.algorithms) → Calcula a sequência ideal de redistribuição começando pela estação doadora.
 
