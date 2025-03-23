@@ -24,15 +24,14 @@ def main_visual(df_filtered,city):
             with status_col:
                 color = status_colors.get(status, status_colors["Outro"])
                 st.markdown(create_card(status, count, color), unsafe_allow_html=True)
-        
+
+        st.header(f"Mapa das Estações Completo de {city}")
+
+        mapa_principal = create_station_map(df_filtered)
+
+        show_map_static(mapa_principal,filtro=city)        
     
     except StreamlitInvalidColumnSpecError as e:
 
         pass
         
-    st.header(f"Mapa das Estações Completo de {city}")
-
-    mapa_principal = create_station_map(df_filtered)
-
-    show_map_static(mapa_principal,filtro=city)   
-
