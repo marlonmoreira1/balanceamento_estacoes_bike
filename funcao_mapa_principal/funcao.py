@@ -23,9 +23,9 @@ def main_visual(df_filtered,city):
         for status_col, (status, count) in zip(status_cols ,status_count.items()):
             with status_col:
                 color = status_colors.get(status, status_colors["Outro"])
-                st.markdown(create_card(status, count, color), unsafe_allow_html=True)
-
-        st.header(f"Mapa das Estações Completo de {city}")
+                st.markdown(create_card(status, count, color), unsafe_allow_html=True)        
+        
+        st.header(f"Mapa das Estações Completo de {city}")       
 
         mapa_principal = create_station_map(df_filtered)
 
