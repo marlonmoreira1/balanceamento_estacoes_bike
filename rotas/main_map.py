@@ -96,7 +96,7 @@ def get_map_html(mapa):
     
     return html_string
 
-@st.cache_data(ttl=600,show_spinner=False)
+@st.cache_data(show_spinner=False)
 def get_cached_map_html(mapa):
     return mapa
 
