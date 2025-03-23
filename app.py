@@ -112,6 +112,9 @@ else:
         "São Paulo": 4
     }
 
+    if doadora.shape[0]  <= 4:
+        route_closer = df_filter.groupby('station_id').head(1)
+
     route_closer = df_filter.groupby('station_id').head(n_city[city])
 
     route_closer = route_closer.sort_values(by='num_bikes_available', ascending=False)
