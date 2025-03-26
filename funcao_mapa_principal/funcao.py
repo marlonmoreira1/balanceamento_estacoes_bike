@@ -32,7 +32,7 @@ def main_visual(df_filtered,city):
         with button_cols[1]:
             if st.button("Recarregar Mapa"):
                 st.cache_data.clear()
-                st.experimental_rerun()       
+                st.rerun()       
 
         mapa_principal = create_station_map(df_filtered)
 
