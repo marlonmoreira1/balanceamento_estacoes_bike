@@ -7,26 +7,8 @@ import random
 from rotas.cores_rotas import get_route
 from concurrent.futures import ThreadPoolExecutor
 
-def calculate_station_routes(df_routes: pd.DataFrame) -> Tuple[Dict, folium.Map]:
-    """
-    Calcula as melhores rotas de estações doadoras para estações vazias.
+def calculate_station_routes(df_routes):
     
-    Parameters:
-    df_routes: DataFrame com colunas:
-        - donor_station_id: ID da estação doadora
-        - donor_lat: latitude da estação doadora
-        - donor_lon: longitude da estação doadora
-        - empty_station_id: ID da estação vazia
-        - empty_lat: latitude da estação vazia
-        - empty_lon: longitude da estação vazia
-    
-    Returns:
-    Tuple contendo:
-        - Dict com informações das rotas agrupadas por estação doadora
-        - Mapa Folium com todas as rotas visualizadas
-    """
-    
-    """Calcula rotas usando paralelismo para melhorar desempenho."""
     routes_info = {}
     donors = df_routes['name_nearby'].unique()
 

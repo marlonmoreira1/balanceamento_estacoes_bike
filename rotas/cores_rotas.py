@@ -14,8 +14,8 @@ import networkx as nx
 from geopy.distance import geodesic
 
 
-def get_route(start_coords: Tuple[float, float], end_coords: Tuple[float, float]) -> dict:
-    """Obtém rota entre dois pontos com cache para melhorar performance."""
+def get_route(start_coords, end_coords):
+    
     url = f"http://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full&geometries=geojson"
     try:
         response = requests.get(url)

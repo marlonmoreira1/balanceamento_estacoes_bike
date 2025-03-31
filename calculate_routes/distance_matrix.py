@@ -2,9 +2,7 @@ import requests
 
 
 def get_distance_matrix(coords):
-    """
-    Obtém a distância total, duração total e geometria para a rota entre os pontos usando OSRM.
-    """
+    
     coord_string = ";".join([f"{lon},{lat}" for lat, lon in coords])  
     url = f"http://router.project-osrm.org/route/v1/driving/{coord_string}?overview=full&geometries=geojson"
     

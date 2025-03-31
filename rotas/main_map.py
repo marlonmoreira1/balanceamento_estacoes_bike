@@ -7,32 +7,8 @@ import tempfile
 import base64
 
 
-def create_station_map(df_stations: pd.DataFrame) -> folium.Map:
-    """
-    Cria um mapa Folium com todas as estações, categorizadas por tipo de situação e
-    conecta as estações vazias às suas respectivas estações doadoras com linhas retas.
+def create_station_map(df_stations):
     
-    Parameters:
-    - df_stations (pd.DataFrame): DataFrame com informações das estações. Deve conter:
-        - 'station_id': ID da estação
-        - 'name': Nome da estação
-        - 'address': Endereço da estação
-        - 'lat': Latitude da estação
-        - 'lon': Longitude da estação
-        - 'station_type_situation': Situação da estação (doadora, vazia, risco, normal)
-    - df_pairs (pd.DataFrame): DataFrame com pares de estações vazia e doadora. Deve conter:
-        - 'station_id': ID da estação vazia
-        - 'name': Nome da estação vazia
-        - 'lat': Latitude da estação vazia
-        - 'lon': Longitude da estação vazia
-        - 'nearby_station_id': ID da estação doadora
-        - 'name_nearby': Nome da estação doadora
-        - 'lat_nearby': Latitude da estação doadora
-        - 'lon_nearby': Longitude da estação doadora
-
-    Returns:
-    - folium.Map: Mapa com todas as estações e conexões entre estações vazias e doadoras.
-    """
    
     center_lat = df_stations['lat'].median()
     center_lon = df_stations['lon'].median()

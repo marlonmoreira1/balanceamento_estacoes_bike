@@ -19,17 +19,7 @@ from calculate_routes.distance_matrix import get_distance_matrix
 
 @st.cache_data(ttl=600,show_spinner=False)
 def optimize_complete_route_with_map(df_stations,df):
-    """
-    Otimiza a rota para cobrir todas as estações (doadoras e vazias) em uma única rota,
-    obtém as rotas detalhadas entre as estações na sequência otimizada e plota no mapa.
-
-    Parameters:
-    df_stations (pd.DataFrame): DataFrame contendo informações das estações e suas distâncias.
-
-    Returns:
-    dict: Dicionário com informações da rota otimizada.
-    folium.Map: Mapa Folium com a rota otimizada visualizada.
-    """
+    
 
     df_polars = pl.from_pandas(df_stations)    
     complete_df = pl.from_pandas(df)

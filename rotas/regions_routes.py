@@ -20,16 +20,7 @@ from rotas.main_map import get_map_html
 
 @st.cache_data(ttl=600,show_spinner=False)
 def optimize_routes_by_region(df_stations,df):
-    """
-    Otimiza rotas para cada região, criando rotas separadas para cada grupo de estações.
-
-    Parameters:
-    df_stations (pd.DataFrame): DataFrame contendo informações das estações, incluindo grupos/regiões.
-
-    Returns:
-    dict: Dicionário contendo informações de rotas otimizadas por região.
-    folium.Map: Um único mapa com todas as rotas.
-    """
+    
     df_polars = pl.from_pandas(df_stations)
     complete_df = pl.from_pandas(df)   
     regional_routes = {}
