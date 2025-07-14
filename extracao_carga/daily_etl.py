@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import time
 from sqlalchemy import create_engine, event
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import DBAPIError
 import pyodbc
 import urllib.parse
 import json
@@ -52,7 +53,7 @@ def conectar_azure_sql():
             
             return engine
         
-        except pyodbc.Error as e:
+        except (DBAPIError, pyodbc.Error):
             print(f"Connection attempt {attempt + 1} failed: {e}")
             attempt += 1
             time.sleep(10)
