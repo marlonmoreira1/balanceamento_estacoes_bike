@@ -44,22 +44,37 @@ def conectar_azure_sql():
 
     while attempt < max_retries:
         try:
-            engine = create_engine(connection_string, fast_executemany=True, connect_args={"timeout": 30})           
+            engine = create_engine(
+                connection_string, 
+                fast_executemany=True, 
+                connect_args={"timeout": 60}  
+            )
             
             @event.listens_for(engine, "before_cursor_execute")
             def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
                 if executemany:
-                    cursor.fast_executemany = True            
+                    cursor.fast_executemany = True
             
+           
+            with engine.connect() as conn:
+                conn.execute("SELECT 1")
+            
+            print(f"Conexão estabelecida com sucesso na tentativa {attempt + 1}")
             return engine
-        
-        except (DBAPIError, pyodbc.Error):
-            print(f"Connection attempt {attempt + 1} failed: {e}")
+            
+        except (DBAPIError, pyodbc.Error) as e:  
+            print(f"Tentativa {attempt + 1} falhou: {str(e)}")
+            
+            
+            if "40613" in str(e):
+                print("Erro 40613: Banco temporariamente indisponível")
+                time.sleep(30)  
+            else:
+                time.sleep(10)
+                
             attempt += 1
-            time.sleep(10)
     
-    if not engine:
-        raise Exception("Falha ao conectar ao Azure SQL Server após várias tentativas.")  
+    raise Exception("Falha ao conectar ao Azure SQL Server após várias tentativas.")  
 
 
 def main():    
