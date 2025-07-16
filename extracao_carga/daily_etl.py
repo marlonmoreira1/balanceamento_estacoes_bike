@@ -56,7 +56,7 @@ def conectar_azure_sql():
                     cursor.fast_executemany = True
 
             with engine.connect() as conn:
-                conn.execute(text("SELECT voo FROM [dbo].[Teste] LIMIT 1"))                
+                conn.execute(text("SELECT voo FROM [dbo].[Teste]"))                
                           
             
             print(f"Conexão estabelecida com sucesso na tentativa {attempt + 1}")
