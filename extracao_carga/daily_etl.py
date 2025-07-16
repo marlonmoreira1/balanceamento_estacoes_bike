@@ -53,7 +53,11 @@ def conectar_azure_sql():
             @event.listens_for(engine, "before_cursor_execute")
             def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
                 if executemany:
-                    cursor.fast_executemany = True            
+                    cursor.fast_executemany = True
+
+            with engine.connect() as conn:
+                conn.execute("SELECT voo FROM [dbo].[Teste] LIMIT 1")                
+                          
             
             print(f"Conexão estabelecida com sucesso na tentativa {attempt + 1}")
             return engine
