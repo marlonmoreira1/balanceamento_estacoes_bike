@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from datetime import datetime, timedelta
 import time
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.exc import DBAPIError
 import pyodbc
@@ -56,7 +56,7 @@ def conectar_azure_sql():
                     cursor.fast_executemany = True
 
             with engine.connect() as conn:
-                conn.execute("SELECT voo FROM [dbo].[Teste] LIMIT 1")                
+                conn.execute(text("SELECT voo FROM [dbo].[Teste] LIMIT 1"))                
                           
             
             print(f"Conexão estabelecida com sucesso na tentativa {attempt + 1}")
