@@ -15,4 +15,4 @@ pyodbc
 google-cloud-bigquery
 sqlalchemy
 db-dtypes
-altair
+altair<5.0.0
