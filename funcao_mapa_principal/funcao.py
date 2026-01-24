@@ -1,7 +1,7 @@
 import streamlit as st
 from cards import create_card
 from rotas.main_map import show_map_static, create_station_map
-from streamlit.errors import StreamlitInvalidColumnSpecError
+
 
 def main_visual(df_filtered,city):
 
@@ -38,7 +38,7 @@ def main_visual(df_filtered,city):
 
         show_map_static(mapa_principal,filtro=city)        
     
-    except StreamlitInvalidColumnSpecError as e:
+    except Exception as e:
 
         pass
         
