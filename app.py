@@ -100,9 +100,9 @@ else:
     main_visual(df_filtered,city)
 
     regions_optimized, map_regions_route = optimize_routes_by_region(route_closer,df_merged)
-
-    st.subheader("Métricas do Roteamento Regional")
+    
     if not len(regions_optimized) <= 0:
+        st.subheader("Métricas do Roteamento Regional")
         cols = st.columns(len(regions_optimized))
         for col, (regiao, info) in zip(cols, regions_optimized.items()):
             with col:
