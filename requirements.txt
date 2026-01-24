@@ -5,7 +5,7 @@ folium
 scipy
 networkx  
 geopy
-streamlit
+streamlit==1.30.0
 streamlit_folium
 streamlit-autorefresh
 slack_sdk
