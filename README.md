@@ -8,6 +8,8 @@ Com a aplicação do algoritmo de redistribuição otimizada, seria possível **
 
 🚨 Estações que permanecem vazias por longos períodos são identificadas e alertadas automaticamente via Slack, permitindo atuação proativa da equipe operacional.
 
+[APP](https://equilibici.streamlit.app/)
+
 ## Resumo do Projeto
 Provavelmente você já viu ou até usou as bicicletas do Itaú (ou de outras marcas como Estácio, Claro, dependendo da cidade) que fazem parte do sistema Tembici. A gestão desses sistemas apresenta desafios complexos.
 Entre eles está a logística de compartilhamento de bicicletas que visa garantir que os usuários sempre encontrem bicicletas disponíveis para aluguel e tenham vagas para devolução. No entanto, dois cenários críticos ocorrem com frequência:
@@ -15,6 +17,8 @@ Entre eles está a logística de compartilhamento de bicicletas que visa garanti
 - **Estações vazias**, em que os usuários chegam e não encontram bicicletas para alugar.
 
 - **Estações cheias**, em que as pessoas devolvem as bicicletas destrancadas e amontoadas, já que não há vagas disponíveis.
+
+[Artigo Medium Parte 1](https://medium.com/p/6dd4a3b772f2)
 
 ## Objetivo do Projeto
 
@@ -70,12 +74,7 @@ GBFS (General Bikeshare Feed Specification), um padrão aberto usado para dispon
 
 ![Arquitetura do Projeto](https://github.com/user-attachments/assets/4393a11f-daf5-4c12-9229-4027f02ea1f5)
 
-
 ## 🔗 Links
-
-[APP](https://equilibici.streamlit.app/)
-
-[Artigo Medium Parte 1](https://medium.com/p/6dd4a3b772f2)
 
 [Artigo Medium Parte 2](https://medium.com/p/59b1e195938e)
 
